@@ -34,7 +34,7 @@ const showBottomNav = computed(() => route.meta?.hideBottomNav !== true)
   display: flex;
   align-items: flex-start;
   justify-content: center;
-  padding: 0 16px;
+  padding: 0 16px calc(env(safe-area-inset-bottom, 0));
 }
 
 .app-layout__frame {
@@ -55,14 +55,15 @@ const showBottomNav = computed(() => route.meta?.hideBottomNav !== true)
   display: flex;
   flex-direction: column;
   overflow-y: auto;
-  padding-bottom: 80px;
+  padding-bottom: calc(80px + env(safe-area-inset-bottom, 0));
 }
 
 .app-bottom-nav-wrapper {
   position: absolute;
-  bottom: 0;
+  bottom: env(safe-area-inset-bottom, 0);
   left: 0;
   right: 0;
+  padding-bottom: env(safe-area-inset-bottom, 0);
 }
 
 @media (max-width: 480px) {

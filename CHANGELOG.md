@@ -1,3 +1,14 @@
+
+
+## v0.0.3
+- Bottom nav bar pinned to bottom on mobile to address safe inset area on iphones
+
+## v0.0.2
+- Bottom nav bar pinned to bottom
+- Top of page pinned to top of screen
+- The look and feel are coming along well
+- Good restore point  
+
 ## v0.0.1
 - First save to Git
 - Event creation module in progress
