@@ -6,7 +6,9 @@
           <router-view />
         </q-page-container>
 
-        <AppBottomNav v-if="showBottomNav" />
+        <div v-if="showBottomNav" class="app-bottom-nav-wrapper">
+          <AppBottomNav />
+        </div>
       </div>
     </div>
   </q-layout>
@@ -30,22 +32,22 @@ const showBottomNav = computed(() => route.meta?.hideBottomNav !== true)
 .app-layout__background {
   min-height: 100vh;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
-  padding: 32px 16px;
+  padding: 0 16px;
 }
 
 .app-layout__frame {
   width: 100%;
   max-width: 420px;
-  min-height: calc(100vh - 64px);
-  max-height: 840px;
+  height: 100vh;
   border-radius: 18px;
   overflow: hidden;
   box-shadow: 0 30px 60px rgba(15, 35, 95, 0.22);
   background: #ffffff;
   display: flex;
   flex-direction: column;
+  position: relative;
 }
 
 .app-layout__pages {
@@ -53,6 +55,14 @@ const showBottomNav = computed(() => route.meta?.hideBottomNav !== true)
   display: flex;
   flex-direction: column;
   overflow-y: auto;
+  padding-bottom: 80px;
+}
+
+.app-bottom-nav-wrapper {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
 }
 
 @media (max-width: 480px) {
