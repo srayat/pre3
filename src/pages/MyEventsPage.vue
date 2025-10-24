@@ -239,7 +239,8 @@ onMounted(fetchEvents)
 .my-events-page {
   min-height: 100%;
   background: linear-gradient(180deg, #f1f5ff 0%, #ffffff 90%);
-  padding-bottom: 100px;
+  overflow: hidden;
+    padding-bottom: 100px;
 }
 
 .my-events-content {
@@ -274,4 +275,5 @@ onMounted(fetchEvents)
   font-weight: 600;
   letter-spacing: 0.05em;
 }
+
 </style>

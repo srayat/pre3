@@ -1,4 +1,7 @@
-
+## v0.0.4
+- Added the RatingsQuestions section to the event creation process
+- Edited the <meta> tag to disable the pinch-zoom 
+- Added two indexes, composite indexes, in firebase console 
 
 ## v0.0.3
 - Bottom nav bar pinned to bottom on mobile to address safe inset area on iphones

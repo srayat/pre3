@@ -1,16 +1,16 @@
 <template>
-  <q-layout view="lHh Lpr lFf" class="app-layout">
-    <div class="app-layout__background">
-      <div class="app-layout__frame">
-        <q-page-container class="app-layout__pages">
-          <router-view />
-        </q-page-container>
-
-        <div v-if="showBottomNav" class="app-bottom-nav-wrapper">
-          <AppBottomNav />
-        </div>
-      </div>
+  <q-layout view="lHh Lpr fFf" class="app-layout">
+    <q-header style="height: 50px;">
+      Pre3.0
+    </q-header>
+    <div class="app-shell">
+      <q-page-container class="app-shell__pages">
+        <router-view />
+      </q-page-container>
     </div>
+    <q-footer>
+    <AppBottomNav v-if="showBottomNav" />
+    </q-footer>
   </q-layout>
 </template>
 
@@ -27,55 +27,46 @@ const showBottomNav = computed(() => route.meta?.hideBottomNav !== true)
 <style scoped>
 .app-layout {
   background: linear-gradient(180deg, #f0f4f8 0%, #dfe7f1 100%);
-}
-
-.app-layout__background {
-  min-height: 100vh;
   display: flex;
-  align-items: flex-start;
   justify-content: center;
-  padding: 0 16px calc(env(safe-area-inset-bottom, 0));
 }
 
-.app-layout__frame {
+.app-shell {
   width: 100%;
   max-width: 420px;
-  height: 100vh;
+  min-height: 100vh;
   border-radius: 18px;
   overflow: hidden;
   box-shadow: 0 30px 60px rgba(15, 35, 95, 0.22);
   background: #ffffff;
   display: flex;
   flex-direction: column;
-  position: relative;
 }
 
-.app-layout__pages {
+.app-shell__pages {
   flex: 1;
   display: flex;
   flex-direction: column;
   overflow-y: auto;
-  padding-bottom: calc(80px + env(safe-area-inset-bottom, 0));
 }
 
-.app-bottom-nav-wrapper {
-  position: absolute;
-  bottom: env(safe-area-inset-bottom, 0);
-  left: 0;
-  right: 0;
-  padding-bottom: env(safe-area-inset-bottom, 0);
+.app-shell__pages > .q-page {
+  min-height: auto;
+  padding: 0 16px calc(96px + env(safe-area-inset-bottom, 0));
+  box-sizing: border-box;
 }
+
 
 @media (max-width: 480px) {
-  .app-layout__background {
-    padding: 0;
-  }
-
-  .app-layout__frame {
+  .app-shell {
     max-width: 100%;
-    max-height: none;
     border-radius: 0;
     box-shadow: none;
+  }
+
+  .app-shell__pages > .q-page {
+    padding: 0 env(safe-area-inset-left, 0) calc(96px + env(safe-area-inset-bottom, 0))
+      env(safe-area-inset-right, 0);
   }
 }
 </style>

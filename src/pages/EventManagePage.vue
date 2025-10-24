@@ -59,10 +59,9 @@
           </div>
         </q-banner>
 
-        <div class="text-subtitle1 text-primary text-weight-bold">Next Steps</div>
+        <div class="text-subtitle1 text-primary text-weight-bold">Setup Your Event</div>
         <div class="text-body2 text-grey-7">
-          Choose what you would like to do next. You can come back here anytime to manage your
-          invitations.
+          Configure your event step by step. You can come back here anytime to manage settings.
         </div>
 
         <div class="column q-gutter-sm q-mt-sm">
@@ -75,7 +74,12 @@
             class="q-py-sm"
             :disable="eventLoading"
             @click="openSection('founder')"
-          />
+          >
+            <q-badge v-if="founderInvites.length > 0" color="positive" floating>
+              {{ founderInvites.length }}
+            </q-badge>
+          </q-btn>
+          
           <q-btn
             color="primary"
             outline
@@ -85,11 +89,35 @@
             class="q-py-sm"
             :disable="eventLoading"
             @click="openSection('judge')"
-          />
+          >
+            <q-badge v-if="judgeInvites.length > 0" color="positive" floating>
+              {{ judgeInvites.length }}
+            </q-badge>
+          </q-btn>
+
+          <q-btn
+            color="primary"
+            outline
+            label="Configure Rating Questions"
+            icon="quiz"
+            no-caps
+            class="q-py-sm"
+            :disable="eventLoading"
+            @click="openSection('rating')"
+          >
+            <q-badge 
+              v-if="eventData?.ratingQuestionsEnabled" 
+              color="positive" 
+              floating
+            >
+              ✓
+            </q-badge>
+          </q-btn>
         </div>
       </div>
     </q-card>
 
+    <!-- Founder Invite Section -->
     <transition name="fade">
       <q-card
         v-if="activeSection === 'founder'"
@@ -203,6 +231,7 @@
       </q-card>
     </transition>
 
+    <!-- Judge Invite Section -->
     <transition name="fade">
       <q-card
         v-if="activeSection === 'judge'"
@@ -215,124 +244,6 @@
           <div class="row items-center q-gutter-sm">
             <q-btn flat round icon="arrow_back" color="primary" @click="openSection(null)" />
             <div class="text-subtitle1 text-primary text-weight-bold">Invite Judges</div>
-          </div>
-          <div class="text-body2 text-grey-7">
-            Invite judges to review pitches and share feedback.
-          </div>
-        </div>
-        <div>
-          <div class="text-subtitle1 text-primary text-weight-bold">
-            Invite Startup Founders
-          </div>
-          <div class="text-body2 text-grey-7">
-            Send a sign-in link to founders so they can claim their startup profile.
-          </div>
-        </div>
-
-        <div class="text-subtitle2 text-grey-7 text-weight-medium q-mb-sm">
-          Startups Added
-        </div>
-
-        <div v-if="founderInvites.length === 0" class="empty-state">
-          <q-icon name="rocket_launch" color="primary" size="38px" class="q-mb-sm" />
-          <div class="text-body2 text-grey-7 text-center">
-            You have not added any startups yet. Enter the details below to get started.
-          </div>
-        </div>
-
-        <q-list v-else bordered separator class="rounded-borders q-mb-md">
-          <q-item v-for="invite in founderInvites" :key="invite.id">
-            <q-item-section avatar>
-              <q-icon name="rocket_launch" color="primary" />
-            </q-item-section>
-            <q-item-section>
-              <q-item-label class="text-weight-medium">
-                {{ invite.startupName || invite.firstName || 'Untitled Startup' }}
-              </q-item-label>
-              <q-item-label caption>
-                {{ invite.emailDisplay || invite.email }}
-              </q-item-label>
-            </q-item-section>
-            <q-item-section side>
-              <q-badge
-                :color="invite.status === 'registered' ? 'positive' : 'grey-5'"
-                class="text-weight-medium"
-              >
-                {{ invite.status }}
-              </q-badge>
-            </q-item-section>
-          </q-item>
-        </q-list>
-
-        <div class="text-subtitle2 text-grey-7 text-weight-medium">Add Startup</div>
-
-        <q-form
-          ref="founderFormRef"
-          class="column q-gutter-sm q-mt-sm form-section"
-          @submit.prevent="submitInvite('founder')"
-        >
-          <q-input
-            v-model="inviteForms.founder.startupName"
-            label="Startup Name"
-            dense
-            outlined
-            :disable="inviteLoading.founder"
-            :rules="[requiredRule]"
-          />
-          <q-input
-            v-model="inviteForms.founder.startupDescription"
-            label="Startup Description (optional)"
-            type="textarea"
-            autogrow
-            outlined
-            :disable="inviteLoading.founder"
-          />
-          <q-input
-            v-model="inviteForms.founder.email"
-            label="Founder Email"
-            dense
-            outlined
-            type="email"
-            :disable="inviteLoading.founder"
-            :rules="[emailRule]"
-          />
-
-          <q-btn
-            type="submit"
-            color="primary"
-            label="Save Startup"
-            no-caps
-            class="q-py-sm"
-            unelevated
-            :loading="inviteLoading.founder"
-          />
-        </q-form>
-
-        <div v-if="founderInvites.length > 0" class="next-action q-mt-md">
-          <q-btn
-            color="primary"
-            outline
-            no-caps
-            class="q-py-sm full-width"
-            icon="military_tech"
-            label="Invite Judges Next"
-            @click="openSection('judge')"
-          />
-        </div>
-      </q-card>
-    </transition>
-
-    <transition name="fade">
-      <q-card
-        v-if="activeSection === 'judge'"
-        ref="judgeCardRef"
-        flat
-        bordered
-        class="invite-card page-width"
-      >
-        <div class="column q-gutter-sm">
-          <div class="text-subtitle1 text-primary text-weight-bold">
-            Invite Judges
           </div>
           <div class="text-body2 text-grey-7">
             Invite judges to review pitches and share feedback.
@@ -419,6 +330,43 @@
             :loading="inviteLoading.judge"
           />
         </q-form>
+
+        <div v-if="judgeInvites.length > 0" class="next-action q-mt-md">
+          <q-btn
+            color="primary"
+            outline
+            no-caps
+            class="q-py-sm full-width"
+            icon="quiz"
+            label="Configure Rating Questions Next"
+            @click="openSection('rating')"
+          />
+        </div>
+      </q-card>
+    </transition>
+
+    <!-- Rating Questions Section -->
+    <transition name="fade">
+      <q-card
+        v-if="activeSection === 'rating'"
+        ref="ratingCardRef"
+        flat
+        bordered
+        class="invite-card page-width"
+      >
+        <div class="column q-gutter-sm q-mb-md">
+          <div class="row items-center q-gutter-sm">
+            <q-btn flat round icon="arrow_back" color="primary" @click="openSection(null)" />
+            <div class="text-subtitle1 text-primary text-weight-bold">
+              Rating Questions
+            </div>
+          </div>
+          <div class="text-body2 text-grey-7">
+            Configure the questions that audience and judges will use to rate startups.
+          </div>
+        </div>
+
+        <rating-questions v-if="eventId" :event-id="eventId" />
       </q-card>
     </transition>
   </q-page>
@@ -433,6 +381,7 @@ import { collection, doc, getDoc, onSnapshot, orderBy, query, serverTimestamp, s
 import { auth, db } from 'boot/firebase'
 import { reservePerson } from 'src/utils/useInvitePerson'
 import { isValidEmail, normalizeEmail } from 'src/utils/normalizeEmail'
+import RatingQuestions from 'components/RatingQuestions.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -445,6 +394,7 @@ const founderInvites = ref([])
 const judgeInvites = ref([])
 const founderCardRef = ref(null)
 const judgeCardRef = ref(null)
+const ratingCardRef = ref(null)
 const stepsCardRef = ref(null)
 const founderFormRef = ref(null)
 const judgeFormRef = ref(null)
@@ -654,10 +604,15 @@ function scrollToSection(section) {
   if (!section) {
     return
   }
-  const target =
-    section === 'founder'
-      ? founderCardRef.value?.$el || founderCardRef.value
-      : judgeCardRef.value?.$el || judgeCardRef.value
+  
+  let target
+  if (section === 'founder') {
+    target = founderCardRef.value?.$el || founderCardRef.value
+  } else if (section === 'judge') {
+    target = judgeCardRef.value?.$el || judgeCardRef.value
+  } else if (section === 'rating') {
+    target = ratingCardRef.value?.$el || ratingCardRef.value
+  }
 
   if (target?.scrollIntoView) {
     target.scrollIntoView({ behavior: 'smooth', block: 'start' })
@@ -850,7 +805,6 @@ async function submitInvite(role) {
 .form-section .row {
   width: 100%;
 }
-
 
 .next-action {
   display: flex;
