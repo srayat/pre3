@@ -2,6 +2,9 @@
 // https://v2.quasar.dev/quasar-cli-vite/quasar-config-file
 
 import { defineConfig } from '#q-app/wrappers'
+import { config as loadDotenv } from 'dotenv'
+
+loadDotenv()
 
 export default defineConfig((/* ctx */) => {
   return {
@@ -11,7 +14,7 @@ export default defineConfig((/* ctx */) => {
     // app boot file (/src/boot)
     // --> boot files are part of "main.js"
     // https://v2.quasar.dev/quasar-cli-vite/boot-files
-    boot: ['axios'],
+    boot: ['firebase', 'axios'],
 
     // https://v2.quasar.dev/quasar-cli-vite/quasar-config-file#css
     css: ['app.scss'],
@@ -35,6 +38,21 @@ export default defineConfig((/* ctx */) => {
       target: {
         browser: ['es2022', 'firefox115', 'chrome115', 'safari14'],
         node: 'node20',
+      },
+
+      env: {
+        FIREBASE_API_KEY: process.env.FIREBASE_API_KEY,
+        FIREBASE_AUTH_DOMAIN: process.env.FIREBASE_AUTH_DOMAIN,
+        FIREBASE_PROJECT_ID: process.env.FIREBASE_PROJECT_ID,
+        FIREBASE_STORAGE_BUCKET: process.env.FIREBASE_STORAGE_BUCKET,
+        FIREBASE_MESSAGING_SENDER_ID: process.env.FIREBASE_MESSAGING_SENDER_ID,
+        FIREBASE_APP_ID: process.env.FIREBASE_APP_ID,
+        FIREBASE_MEASUREMENT_ID: process.env.FIREBASE_MEASUREMENT_ID,
+        FIREBASE_USE_AUTH_EMULATOR: process.env.FIREBASE_USE_AUTH_EMULATOR,
+        FIREBASE_AUTH_EMULATOR_HOST: process.env.FIREBASE_AUTH_EMULATOR_HOST,
+        VITE_USE_FUNCTIONS_EMULATOR: process.env.VITE_USE_FUNCTIONS_EMULATOR,
+        VITE_FUNCTIONS_EMULATOR_HOST: process.env.VITE_FUNCTIONS_EMULATOR_HOST,
+        VITE_FUNCTIONS_EMULATOR_PORT: process.env.VITE_FUNCTIONS_EMULATOR_PORT,
       },
 
       vueRouterMode: 'hash', // available values: 'hash', 'history'
@@ -91,7 +109,7 @@ export default defineConfig((/* ctx */) => {
       // directives: [],
 
       // Quasar plugins
-      plugins: [],
+      plugins: ['Notify'],
     },
 
     // animations: 'all', // --- includes all animations

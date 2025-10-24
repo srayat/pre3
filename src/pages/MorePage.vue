@@ -1,0 +1,160 @@
+<template>
+  <q-page class="more-page column q-pa-lg">
+    <div class="text-h5 text-weight-bold text-primary q-mb-sm">More</div>
+    <div class="text-body1 text-grey-7 q-mb-lg">
+      Quick actions and settings curated just for you.
+    </div>
+
+    <q-card flat bordered class="actions-card">
+      <q-list separator>
+        <q-item v-for="action in actions" :key="action.key" clickable @click="handleAction(action)">
+          <q-item-section avatar>
+            <q-icon :name="action.icon" color="primary" />
+          </q-item-section>
+          <q-item-section>
+            <q-item-label class="text-weight-medium">{{ action.label }}</q-item-label>
+            <q-item-label caption>{{ action.caption }}</q-item-label>
+          </q-item-section>
+          <q-item-section side>
+            <q-icon name="chevron_right" color="grey-5" />
+          </q-item-section>
+        </q-item>
+      </q-list>
+    </q-card>
+  </q-page>
+</template>
+
+<script setup>
+import { onMounted, onBeforeUnmount } from 'vue'
+import { useRouter } from 'vue-router'
+import { useQuasar } from 'quasar'
+import { onAuthStateChanged, signOut } from 'firebase/auth'
+import { auth, db } from 'boot/firebase'
+import { doc, getDoc } from 'firebase/firestore'
+
+const router = useRouter()
+const $q = useQuasar()
+
+const actions = [
+  {
+    key: 'create-event',
+    icon: 'event_available',
+    label: 'Create an Event',
+    caption: 'Set up a new pitch or activity',
+  },
+  {
+    key: 'edit-profile',
+    icon: 'manage_accounts',
+    label: 'Edit Profile',
+    caption: 'Update your personal details',
+  },
+  {
+    key: 'create-startup',
+    icon: 'rocket_launch',
+    label: 'Create a Startup Page',
+    caption: 'Launch your startup profile',
+  },
+  {
+    key: 'logout',
+    icon: 'logout',
+    label: 'Log Out',
+    caption: 'Sign out of your account',
+  },
+]
+
+let unsub = () => {}
+
+onMounted(() => {
+  unsub = onAuthStateChanged(auth, (user) => {
+    if (!user) {
+      router.replace('/sign-in')
+    }
+  })
+})
+
+onBeforeUnmount(() => {
+  unsub()
+})
+
+async function handleAction(action) {
+  if (action.key === 'create-event') {
+    await handleCreateEvent()
+    return
+  }
+
+  if (action.key === 'logout') {
+    try {
+      await signOut(auth)
+      $q.notify({ type: 'info', message: 'You have been signed out.' })
+      await router.replace('/sign-in')
+    } catch (error) {
+      console.error(error)
+      $q.notify({ type: 'negative', message: 'Sign-out failed. Please try again.' })
+    }
+    return
+  }
+
+  if (action.key === 'edit-profile') {
+    await router.push('/onboarding')
+    return
+  }
+
+  $q.notify({
+    type: 'info',
+    message: 'This feature is coming soon!',
+  })
+}
+
+async function handleCreateEvent() {
+  if (!auth.currentUser) {
+    await router.replace('/sign-in')
+    return
+  }
+
+  try {
+    const userDocRef = doc(db, 'users', auth.currentUser.uid)
+    const snapshot = await getDoc(userDocRef)
+    const eventBalance = snapshot.data()?.hostingAccount?.eventBalance ?? 0
+
+    if (eventBalance > 0) {
+      await router.push('/events/new')
+      return
+    }
+
+    $q.dialog({
+      title: 'Upgrade Required',
+      message: 'You need to upgrade your plan to create more events.',
+      ok: {
+        label: 'Okay',
+        color: 'primary',
+        unelevated: true,
+      },
+      cancel: {
+        label: 'Not now',
+        flat: true,
+        color: 'grey-7',
+      },
+      persistent: true,
+    })
+  } catch (error) {
+    console.error(error)
+    $q.notify({
+      type: 'negative',
+      message: 'Unable to verify your event balance. Please try again.',
+    })
+  }
+}
+</script>
+
+<style scoped>
+.more-page {
+  min-height: 100%;
+  background: linear-gradient(180deg, #f9fbff 0%, #ffffff 85%);
+  padding-bottom: 96px;
+}
+
+.actions-card {
+  border-radius: 18px;
+  box-shadow: 0 14px 32px rgba(15, 35, 95, 0.12);
+}
+</style>
