@@ -1,5 +1,5 @@
 <template>
-  <q-layout view="lHh Lpr fFf" class="app-layout">
+  <q-layout view="lHh Lpr lFf" class="app-layout">
     <q-header style="height: 50px;">
       Pre3.0
     </q-header>
@@ -33,7 +33,7 @@ const showBottomNav = computed(() => route.meta?.hideBottomNav !== true)
 
 .app-shell {
   width: 100%;
-  max-width: 420px;
+  max-width: 580px;
   min-height: 100vh;
   border-radius: 18px;
   overflow: hidden;

@@ -7,7 +7,7 @@
       </div>
 
       <div class="text-body1 text-grey-7 q-mb-md">
-        Events you host or participate in. Tap any card to jump back in.
+        Events you host or participate in. Tap any card to dive in.
       </div>
 
       <q-card v-if="loading" flat bordered class="skeleton-card">
@@ -21,7 +21,7 @@
           <q-icon name="event_busy" size="48px" color="primary" class="q-mb-sm" />
           <div class="text-subtitle1 text-weight-medium text-primary">No events yet</div>
           <div class="text-body2 text-grey-7 text-center q-mt-xs">
-            Once you host or join an event it will appear here.
+            Once you participate in or host an event, it will appear here.
           </div>
         </div>
 
@@ -34,11 +34,11 @@
           @click="handlePrimaryAction(event)"
         >
           <div class="row items-center justify-between">
-            <div class="text-subtitle1 text-weight-bold text-primary">
+            <div class="text-subtitle1 text-weight-bold text-primary event-name">
               {{ event.name }}
             </div>
             <q-badge align="middle" color="primary" text-color="white" class="role-badge">
-              [{{ event.roleLabel }}]
+              [ {{ event.roleLabel }} ]
             </q-badge>
           </div>
 
@@ -240,7 +240,7 @@ onMounted(fetchEvents)
   min-height: 100%;
   background: linear-gradient(180deg, #f1f5ff 0%, #ffffff 90%);
   overflow: hidden;
-    padding-bottom: 100px;
+  padding-bottom: 100px;
 }
 
 .my-events-content {
@@ -259,7 +259,7 @@ onMounted(fetchEvents)
 
 .event-card,
 .skeleton-card {
-  border-radius: 18px;
+  border-radius: 4px;
   box-shadow: 0 18px 32px rgba(15, 35, 95, 0.08);
   padding: 18px;
   width: 100%;
@@ -271,9 +271,26 @@ onMounted(fetchEvents)
   padding: 36px 24px;
 }
 
-.role-badge {
+.event-name {
+  color: var( --app-mifnight-blue ) !important;
+}
+
+:deep(.role-badge) {
   font-weight: 600;
+  font-size: 1em;
   letter-spacing: 0.05em;
+  background: none !important;
+  color: #444 !important;
+}
+
+.q-btn {
+  color: var( --app-midnight-blue ) !important;
+  font-size: 0.9em !important;
+  background: var( --app-harper-blue) !important;
+}
+
+.q-btn:hover {
+  background: var( --app-light-steel-3) !important;
 }
 
 </style>

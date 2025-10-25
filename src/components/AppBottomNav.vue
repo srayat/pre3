@@ -1,6 +1,7 @@
 
 <template>
   <div class="app-bottom-nav bg-white text-primary">
+    <q-bottom-navigation>
     <q-tabs class="full-width app-bottom-nav__tabs" align="justify" no-caps active-color="primary">
       <q-route-tab
         v-for="item in navItems"
@@ -12,6 +13,7 @@
         exact
       />
     </q-tabs>
+   </q-bottom-navigation>
   </div>
 </template>
 
@@ -24,14 +26,14 @@ const navItems = [
 ]
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .app-bottom-nav {
   position: fixed;
   left: 50%;
   bottom: 0;
   transform: translateX(-50%);
   width: 100%;
-  max-width: 420px;
+  max-width: 580px;
   background: #ffffff;
   border-top: 1px solid rgba(0, 0, 0, 0.05);
   box-shadow: 0 -8px 18px rgba(15, 35, 95, 0.08);
@@ -42,21 +44,23 @@ const navItems = [
 }
 
 .app-bottom-nav__tabs .q-tab__content {
-  min-height: 64px;
+  min-height: 54px;
 }
 
-.app-bottom-nav__tabs .q-icon {
+.app-bottom-nav__tabs .q-tab__icon {
   font-size: 22px;
-  color: #888;
 }
 
 .app-bottom-nav__tabs .q-tab__label {
   font-weight: 600;
   font-size: 13px;
-  color: #bbb;
 }
 
-@media (max-width: 480px) {
+:deep(.q-tab__label) {
+      
+    }
+
+@media (max-width: 520px) {
   .app-bottom-nav {
     max-width: 100%;
     border-radius: 0;

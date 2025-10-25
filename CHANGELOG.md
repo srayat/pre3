@@ -1,3 +1,11 @@
+
+
+## v0.0.5
+- Finally, the bottom nav bar is now desirably sticky
+- Changed the Primary color of the app 
+- Some other changes to colors and font-sizes
+- Slight design changes to the event card 
+
 ## v0.0.4
 - Added the RatingsQuestions section to the event creation process
 - Edited the <meta> tag to disable the pinch-zoom 
