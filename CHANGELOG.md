@@ -1,5 +1,12 @@
 
 
+## v0.0.6
+- A major upgrade in this version
+- Rating Form has been developed - Front end only
+- Join event and event onboarding developed
+- user lands on investment page
+- user can rate the startup - not integrated with backend yet 
+
 ## v0.0.5
 - Finally, the bottom nav bar is now desirably sticky
 - Changed the Primary color of the app 

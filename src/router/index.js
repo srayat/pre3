@@ -8,6 +8,7 @@ import {
 import routes from './routes'
 import { auth } from 'boot/firebase'
 import { onAuthStateChanged } from 'firebase/auth'
+import { useEventStore } from 'stores/event-store'
 
 /*
  * If not building with SSR mode, you can
@@ -36,6 +37,16 @@ export default defineRouter(function (/* { store, ssrContext } */) {
   })
 
   Router.beforeEach(async (to, _, next) => {
+    // Initialize event store
+    const eventStore = useEventStore()
+
+    // Check if route requires an active event
+    if (to.meta.requiresEvent && !eventStore.currentEvent) {
+      next('/event-code')
+      return
+    }
+
+    // Your existing authentication logic
     if (!to.meta.requiresAuth) {
       next()
       return

@@ -13,11 +13,53 @@ const routes = [
         component: () => import('pages/SignInPage.vue'),
         meta: { hideBottomNav: true },
       },
+      
+      // ========== EVENT FLOW ROUTES (NEW) ==========
+      {
+        path: 'onboarding',
+        name: 'onboarding',
+        component: () => import('pages/EventOnboardingPage.vue'),
+        meta: { 
+          requiresAuth: true, 
+          requiresEvent: true,  // ← NEW: Needs active event
+          hideBottomNav: true 
+        },
+      },
+      {
+        path: 'investment',
+        name: 'investment', 
+        component: () => import('pages/InvestmentPage.vue'),
+        meta: { 
+          requiresAuth: true, 
+          requiresEvent: true,  // ← NEW: Needs active event
+          hideBottomNav: true 
+        },
+      },
+      // ========== END EVENT FLOW ROUTES ==========
+
       {
         path: 'onboarding',
         component: () => import('pages/OnboardingPage.vue'),
         meta: { requiresAuth: true, hideBottomNav: true },
       },
+
+      {
+        path: 'rate-startup/:startupId',
+        component: () => import('pages/RateStartupPage.vue'),
+        meta: { requiresAuth: true, requiresEvent: true }
+      },
+
+      {
+        path: 'rate-startup/:startupId',
+        name: 'rate-startup',
+        component: () => import('pages/RateStartupPage.vue'),
+        meta: { 
+          requiresAuth: true, 
+          requiresEvent: true,
+          hideBottomNav: true 
+        },
+      },
+
       {
         path: 'home',
         component: () => import('pages/HomePage.vue'),

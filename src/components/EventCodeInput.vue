@@ -1,9 +1,14 @@
 <template>
   <q-page class="row items-center justify-center q-pa-md">
+    <!-- 
+      Main container with centered layout
+      Uses Quasar's flexbox utilities for perfect centering
+    -->
     <div class="column items-center" style="max-width: 400px; width: 100%">
       
       <!-- Header Section -->
       <div class="text-center q-mb-xl">
+        <!-- Visual icon for better UX -->
         <q-icon name="qr_code_scanner" size="64px" color="primary" class="q-mb-md" />
         <div class="text-h4 text-weight-bold">Enter Event Code</div>
         <div class="text-subtitle1 text-grey-7 q-mt-sm">
@@ -15,7 +20,14 @@
       <q-form @submit="handleSubmit" class="full-width">
         <div class="column items-center q-gutter-y-md">
           
-          <!-- Code Input Field -->
+          <!-- 
+            Code Input Field
+            Features:
+            - mask="####" ensures exactly 4 digits
+            - fill-mask shows placeholder underscores
+            - unmasked-value gives raw value without mask characters
+            - letter-spacing for better digit separation
+          -->
           <q-input
             v-model="code"
             label="4-Digit Code"
@@ -62,43 +74,57 @@
 
 <script>
 import { ref } from 'vue'
-import { useEventStore } from 'src/stores/event-store'
+import { useEventStore } from 'stores/event-store'
 import { useRouter } from 'vue-router'
 
+/**
+ * EventCodeInput Component
+ * 
+ * Purpose:
+ * - Accept 4-digit event code from user
+ * - Validate code against Firestore
+ * - Route user to appropriate next page (onboarding or investment)
+ * 
+ * @component
+ * @example <EventCodeInput />
+ */
 export default {
-  name: 'HomePage',
+  name: 'EventCodeInput',
+  
   setup() {
-    const code = ref('')
-    const eventStore = useEventStore()
-    const router = useRouter()
+    // ========== REACTIVE STATE ==========
+    const code = ref('') // Holds the 4-digit code input
+    const eventStore = useEventStore() // Access event store
+    const router = useRouter() // Vue Router for navigation
 
+    // ========== METHODS ==========
+    
+    /**
+     * Handles form submission
+     * 1. Validates code with event store
+     * 2. Routes to onboarding (first time) or investment page (returning user)
+     */
     const handleSubmit = async () => {
-      console.log('Submit clicked, code:', code.value)
-      
+      // Validate code and check event status
       const isValid = await eventStore.validateEventCode(code.value)
-      console.log('Validation result:', isValid)
-      console.log('Error message:', eventStore.error)
-      console.log('Current event:', eventStore.currentEvent)
-      console.log('Has completed onboarding:', eventStore.hasCompletedOnboarding)
       
       if (isValid) {
-        console.log('Navigation: hasCompletedOnboarding =', eventStore.hasCompletedOnboarding)
+        // Route based on onboarding completion status
         if (eventStore.hasCompletedOnboarding) {
-          console.log('Redirecting to /investment')
+          // Returning user - go directly to investment page
           router.push('/investment')
         } else {
-          console.log('Redirecting to /onboarding')
+          // First-time user - show onboarding flow
           router.push('/onboarding')
         }
-      } else {
-        console.log('Validation failed, error:', eventStore.error)
       }
     }
 
+    // ========== TEMPLATE EXPOSURE ==========
     return {
       code,
-      isLoading: eventStore.isLoading,
-      error: eventStore.error,
+      isLoading: eventStore.isLoading, // Proxy loading state from store
+      error: eventStore.error, // Proxy error state from store
       handleSubmit
     }
   }
@@ -106,6 +132,10 @@ export default {
 </script>
 
 <style scoped>
+/* 
+  Enhanced digit spacing for better code readability
+  Makes 4-digit codes easier to read and verify
+*/
 .letter-spacing-4 {
   letter-spacing: 0.5em;
   padding-left: 0.5em;
