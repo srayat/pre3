@@ -1,4 +1,10 @@
 
+## v0.0.7
+- Another major upgrade in this version
+- The Event Management System is complete
+- Creating an event, saving it, generating 5-digit Numeric ID, using that as the eventId on firestore
+- Moving gracefully to next steps of adding startups, judges, and Ratings. Each section works.
+- Editing and Deleting also work.
 
 ## v0.0.6
 - A major upgrade in this version

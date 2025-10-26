@@ -1,6 +1,6 @@
 <template>
   <div class="rating-questions-container">
-    <q-card flat bordered class="q-pa-md">
+    <q-card flat class="q-pa-md">
       <!-- Header with Enable/Disable Toggle -->
       <div class="row items-center justify-between q-mb-md">
         <div class="text-h6">Rating Questions</div>
@@ -15,7 +15,6 @@
       <template v-if="questionsEnabled">
         <!-- Question Set Toggle -->
         <q-card flat bordered class="q-mb-md q-pa-md bg-grey-1">
-          <div class="text-subtitle2 q-mb-sm">Question Set Configuration</div>
           <q-option-group
             v-model="questionSetType"
             :options="questionSetOptions"
@@ -188,7 +187,14 @@
         <!-- Action Buttons -->
         <div class="row justify-end q-gutter-sm q-mt-md">
           <q-btn flat label="Reset to Defaults" color="secondary" @click="resetToDefaults" />
-          <q-btn unelevated label="Save Configuration" color="primary" @click="saveAllQuestions" />
+        
+          <q-btn 
+  unelevated 
+  label="Save Configuration" 
+  color="primary" 
+  :loading="saving"
+  @click="saveAllQuestions" 
+/>
         </div>
       </template>
 
@@ -203,7 +209,7 @@
 import { ref, onMounted } from 'vue'
 import { useQuasar } from 'quasar'
 import { doc, updateDoc, getDoc } from 'firebase/firestore'
-import { db } from 'src/boot/firebase'
+import { db } from 'boot/firebase'
 
 const props = defineProps({
   eventId: {
@@ -220,10 +226,13 @@ const questionSetType = ref('same')
 const audienceQuestions = ref([])
 const judgeQuestions = ref([])
 const feedbackEnabled = ref(true)
+const saving = ref(false)
 
 // Drag and drop state
 const draggedIndex = ref(null)
 const draggedType = ref(null)
+
+console.log('RatingQuestions component loaded, eventId:', props.eventId)  // for debugging
 
 // Options
 const questionSetOptions = [
@@ -322,8 +331,10 @@ function handleDragEnd(event) {
   draggedType.value = null
 }
 
+
 // Load questions from Firestore
 async function loadQuestions() {
+  console.log('loadQuestions called with eventId:', props.eventId)  // for debugging
   try {
     const eventRef = doc(db, 'events', props.eventId)
     const eventDoc = await getDoc(eventRef)
@@ -392,13 +403,44 @@ function deleteQuestion(type, index) {
 }
 
 // Save individual question (auto-save on blur)
-function saveQuestion(type, question) {
-  console.log(`Auto-saving ${type} question:`, question)
+async function saveQuestion(type, question) {
+  if (!question.question.trim()) return
+  
+  try {
+    const eventRef = doc(db, 'events', props.eventId)
+    const updateData = {}
+    
+    if (type === 'audience') {
+      updateData.audienceQuestions = audienceQuestions.value
+    } else {
+      updateData.judgeQuestions = judgeQuestions.value
+    }
+    
+    updateData.updatedAt = new Date()
+    await updateDoc(eventRef, updateData)
+    
+    console.log(`Auto-saved ${type} question:`, question)
+  } catch (error) {
+    console.error('Error auto-saving question:', error)
+    $q.notify({
+      type: 'negative',
+      message: 'Failed to auto-save question'
+    })
+  }
 }
 
 // Handle enable/disable toggle
-function handleEnableToggle(value) {
-  console.log('Questions enabled:', value)
+async function handleEnableToggle(value) {
+  try {
+    const eventRef = doc(db, 'events', props.eventId)
+    await updateDoc(eventRef, {
+      ratingQuestionsEnabled: value,
+      updatedAt: new Date()
+    })
+    console.log('Questions enabled:', value)
+  } catch (error) {
+    console.error('Error updating questions enabled:', error)
+  }
 }
 
 // Handle question set type change
@@ -431,6 +473,7 @@ function resetToDefaults() {
 
 // Save all questions to Firestore
 async function saveAllQuestions() {
+    saving.value = true
   try {
     const hasEmptyQuestions = audienceQuestions.value.some(q => !q.question.trim()) ||
       (questionSetType.value === 'different' && judgeQuestions.value.some(q => !q.question.trim()))
@@ -440,6 +483,7 @@ async function saveAllQuestions() {
         type: 'warning',
         message: 'Please fill in all questions before saving'
       })
+      saving.value = false
       return
     }
 
@@ -474,11 +518,15 @@ async function saveAllQuestions() {
       type: 'negative',
       message: 'Failed to save questions'
     })
+  } finally {
+    saving.value = false  // addresses the constantly spinning loader on save button
   }
 }
 
 // Load questions on mount
 onMounted(() => {
+  console.log('RatingQuestions mounted, starting to load questions...')
+  console.log('Firebase db object:', db)
   loadQuestions()
 })
 </script>
@@ -487,6 +535,7 @@ onMounted(() => {
 .rating-questions-container {
   max-width: 900px;
   margin: 0 auto;
+  border: none !important;
 }
 
 .questions-list {

@@ -1,85 +1,107 @@
 <template>
-  <q-page class="event-create-page column q-pa-lg q-gutter-lg">
-    <div class="row items-center">
+  <q-page class="event-create-page column q-pa-lg">
+    <!-- Header -->
+    <div class="row items-center q-mb-lg">
       <q-btn flat round icon="arrow_back" color="primary" @click="goBack" />
       <div class="text-h5 text-weight-bold text-primary q-ml-sm">Create an Event</div>
     </div>
 
-    <div class="text-body1 text-grey-7">
+    <div class="text-body1 text-grey-7 q-mb-lg">
       Share a few details to spin up your pitch event. You can invite founders and judges after
       saving.
     </div>
 
-    <q-form class="column q-gutter-md" @submit.prevent="handleSubmit">
-      <q-input
-        v-model="form.name"
-        label="Event Name"
-        outlined
-        dense
-        :rules="[requiredRule]"
-        :disable="loading"
-      />
 
-      <q-input
-        v-model="form.description"
-        label="Event Description"
-        type="textarea"
-        outlined
-        autogrow
-        :disable="loading"
-      />
-
-      <q-input
-        v-model="form.date"
-        label="Event Date"
-        mask="####-##-##"
-        hint="Use YYYY-MM-DD format"
-        outlined
-        dense
-        :rules="[dateRule]"
-        :disable="loading"
+    <!-- Stepper -->
+    <q-stepper
+      v-model="currentStep"
+      vertical
+      color="primary"
+      animated
+      class="q-mb-lg"
+    >
+      <!-- Step 1: Basic Info -->
+      <q-step
+        :name="1"
+        title="Basic Information"
+        icon="info"
+        :done="currentStep > 1"
       >
-        <template #append>
-          <q-icon name="event" class="cursor-pointer">
-            <q-popup-proxy>
-              <q-date v-model="form.date" mask="YYYY-MM-DD" />
-            </q-popup-proxy>
-          </q-icon>
-        </template>
-      </q-input>
+        <event-basic-info 
+          :form-data="form" 
+          :loading="loading" 
+          @update:form-data="updateForm"
+        />
+        
+        <q-stepper-navigation class="q-mt-md">
+          <q-btn 
+            @click="currentStep = 2" 
+            color="primary" 
+            label="Continue" 
+            :disable="!form.name"
+          />
+        </q-stepper-navigation>
+      </q-step>
 
-      <q-input
-        v-model="form.location"
-        label="Location (optional)"
-        outlined
-        dense
-        :disable="loading"
-      />
+      <!-- Step 2: Settings -->
+      <q-step
+        :name="2"
+        title="Event Settings"
+        icon="settings"
+        :done="currentStep > 2"
+      >
+        <event-settings 
+          :form-data="form" 
+          :loading="loading" 
+          @update:form-data="updateForm"
+        />
+        
+        <q-stepper-navigation class="q-mt-md">
+          <q-btn 
+            flat 
+            @click="currentStep = 1" 
+            color="primary" 
+            label="Back" 
+            class="q-mr-sm" 
+          />
+          <q-btn 
+            @click="currentStep = 3" 
+            color="primary" 
+            label="Continue" 
+          />
+        </q-stepper-navigation>
+      </q-step>
 
-      <q-input
-        v-model.number="form.capacity"
-        label="Capacity (optional)"
-        type="number"
-        outlined
-        dense
-        :min="1"
-        :disable="loading"
-      />
+      <!-- Step 3: Preview & Create -->
+      <q-step
+        :name="3"
+        title="Preview & Create"
+        icon="preview"
+      >
+        <event-preview :form-data="form" />
+        
+        <q-stepper-navigation class="q-mt-md">
+          <q-btn 
+            flat 
+            @click="currentStep = 2" 
+            color="primary" 
+            label="Back" 
+            class="q-mr-sm" 
+          />
+          <q-btn 
+            @click="handleSubmit" 
+            color="positive" 
+            label="Create Event" 
+            :loading="loading"
+          />
+        </q-stepper-navigation>
+      </q-step>
+    </q-stepper>
 
-      <q-btn
-        type="submit"
-        color="primary"
-        no-caps
-        unelevated
-        class="q-py-sm"
-        :loading="loading"
-        label="Save Event"
-      />
-    </q-form>
 
-    <q-separator />
+    <q-separator class="q-mt-lg" />
 
-    <div class="text-caption text-grey-6">
+    <div class="text-caption text-grey-6 q-mt-md">
       After creating an event, you will be able to invite startup founders and judges using their
       email addresses.
     </div>
@@ -90,12 +112,18 @@
 import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useQuasar } from 'quasar'
-import { serverTimestamp, addDoc, collection } from 'firebase/firestore'
+import { doc, setDoc, serverTimestamp, getDoc } from 'firebase/firestore'
 import { auth, db } from 'boot/firebase'
+
+// Components
+import EventBasicInfo from 'components/event-create/EventBasicInfo.vue'
+import EventSettings from 'components/event-create/EventSettings.vue'
+import EventPreview from 'components/event-create/EventPreview.vue'
 
 const router = useRouter()
 const $q = useQuasar()
 const loading = ref(false)
+const currentStep = ref(1)
 
 const form = reactive({
   name: '',
@@ -103,14 +131,46 @@ const form = reactive({
   date: '',
   location: '',
   capacity: null,
+  isPublic: true
 })
 
-const requiredRule = (val) => !!val && val.trim().length > 0 || 'This field is required'
+// This function to handle form updates from child components
+const updateForm = (newFormData) => {
+  Object.assign(form, newFormData)
+}
 
-const dateRule = (val) =>
-  !val ||
-  /^\d{4}-\d{2}-\d{2}$/.test(val) ||
-  'Enter a valid date in YYYY-MM-DD format'
+
+// Generate 5-digit numeric event code (10000-99999)
+const generateEventCode = () => {
+  const min = 10000
+  const max = 99999
+  return Math.floor(Math.random() * (max - min + 1)) + min
+}
+
+// Generate unique numeric code with collision detection
+const generateUniqueEventCode = async () => {
+  let attempts = 0
+  const maxAttempts = 10
+  
+  while (attempts < maxAttempts) {
+    const code = generateEventCode().toString() // Convert to string for Firestore ID
+    const eventRef = doc(db, 'events', code)
+    
+    try {
+      // Check if code already exists
+      const eventSnap = await getDoc(eventRef)
+      if (!eventSnap.exists()) {
+        return code // Unique code found!
+      }
+    } catch (error) {
+      console.error('Error checking event code:', error)
+    }
+    
+    attempts++
+  }
+  
+  throw new Error('Could not generate unique event code after multiple attempts')
+}
 
 function goBack() {
   router.back()
@@ -125,32 +185,52 @@ async function handleSubmit() {
 
   if (!form.name.trim()) {
     $q.notify({ type: 'warning', message: 'Event name is required.' })
+    currentStep.value = 1
     return
   }
 
   try {
     loading.value = true
+    
+    // Generate unique 5-digit numeric event code
+    const eventCode = await generateUniqueEventCode()
+    
+    // Create event with numeric code as document ID
+    const eventRef = doc(db, 'events', eventCode)
     const timestamp = serverTimestamp()
 
-    const eventRef = await addDoc(collection(db, 'events'), {
+    await setDoc(eventRef, {
       name: form.name.trim(),
       description: form.description.trim(),
       date: form.date || null,
       location: form.location.trim() || null,
       capacity: form.capacity || null,
+      isPublic: form.isPublic,
+      code: eventCode, // Store code as field for easy queries
       hostUid: auth.currentUser.uid,
-      status: 'draft',
+      status: 'setup', // setup → live → ended
       createdAt: timestamp,
       updatedAt: timestamp,
     })
 
-    $q.notify({ type: 'positive', message: 'Event created successfully.' })
-    await router.replace({ path: `/events/${eventRef.id}`, query: { created: '1' } })
+    $q.notify({ 
+      type: 'positive', 
+      message: `Event created successfully! Your event code is: ${eventCode}`,
+      timeout: 5000,
+      caption: 'Share this 5-digit code with participants to join your event'
+    })
+    
+    // Redirect to event management page
+    await router.replace({ 
+      path: `/events/${eventCode}`, 
+      query: { created: '1' } 
+    })
+    
   } catch (error) {
-    console.error(error)
+    console.error('Event creation error:', error)
     $q.notify({
       type: 'negative',
-      message: 'We could not save your event. Please try again.',
+      message: error.message || 'We could not save your event. Please try again.',
     })
   } finally {
     loading.value = false

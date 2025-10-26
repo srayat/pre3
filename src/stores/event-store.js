@@ -19,12 +19,14 @@ export const useEventStore = defineStore('event', () => {
   })
 
   // ========== ACTIONS ==========
- const validateEventCode = async (code) => {
+// In src/stores/event-store.js - update validateEventCode function
+const validateEventCode = async (code) => {
   console.log('validateEventCode called with:', code)
   
-  if (!code || code.length !== 4) {
-    error.value = 'Please enter a valid 4-digit code'
-    console.log('Code validation failed - not 4 digits')
+  // Validate it's a 5-digit number
+  if (!code || code.length !== 5 || !/^\d+$/.test(code)) {
+    error.value = 'Please enter a valid 5-digit code'
+    console.log('Code validation failed - not 5 digits')
     return false
   }
 
@@ -32,8 +34,8 @@ export const useEventStore = defineStore('event', () => {
   error.value = ''
 
   try {
-    console.log('Querying Firestore for event:', code.toUpperCase())
-    const eventRef = doc(db, 'events', code.toUpperCase())
+    console.log('Querying Firestore for event:', code)
+    const eventRef = doc(db, 'events', code) // No need for uppercase now
     const eventSnap = await getDoc(eventRef)
 
     console.log('Firestore response:', eventSnap.exists())

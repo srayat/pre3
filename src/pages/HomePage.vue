@@ -7,7 +7,7 @@
         <q-icon name="qr_code_scanner" size="64px" color="primary" class="q-mb-md" />
         <div class="text-h4 text-weight-bold">Enter Event Code</div>
         <div class="text-subtitle1 text-grey-7 q-mt-sm">
-          Enter the 4-digit code provided by your event organizer
+          Enter the 5-digit code provided by your event organizer
         </div>
       </div>
 
@@ -15,14 +15,14 @@
       <q-form @submit="handleSubmit" class="full-width">
         <div class="column items-center q-gutter-y-md">
           
-          <!-- Code Input Field -->
+          <!-- Updated for 5-digit numeric codes -->
           <q-input
             v-model="code"
-            label="4-Digit Code"
-            mask="####"
+            label="5-Digit Code"
+            mask="#####"
             fill-mask
             unmasked-value
-            :rules="[val => val.length === 4 || 'Please enter 4 digits']"
+            :rules="[val => val.length === 5 && /^\d+$/.test(val) || 'Please enter 5 digits']"
             input-class="text-h5 text-center letter-spacing-4"
             class="full-width"
             :disable="isLoading"
@@ -51,10 +51,10 @@
         </div>
       </q-form>
 
-      <!-- Help Text for Users -->
+      <!-- Updated Help Text -->
       <div class="text-caption text-grey-6 q-mt-xl text-center">
         <div>Don't have a code?</div>
-        <div>Contact your event organizer to get your unique 4-digit event code.</div>
+        <div>Contact your event organizer to get your unique 5-digit event code.</div>
       </div>
     </div>
   </q-page>
