@@ -66,7 +66,10 @@
     "ui": {
       "enabled": true
     },
-    "singleProjectMode": true
+    "singleProjectMode": true,
+    "hosting": {
+      "port": 5000
+    }
   },
   "remoteconfig": {
     "template": "remoteconfig.template.json"

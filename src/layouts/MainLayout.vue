@@ -1,6 +1,6 @@
 <template>
   <q-layout view="lHh Lpr lFf" class="app-layout">
-    <q-header style="height: 50px;">
+    <q-header class="text-h5 row justify-center app-max-width" style="height: 44px; margin: 0 auto;">
       Pre3.0
     </q-header>
     <div class="app-shell">
@@ -41,6 +41,7 @@ const showBottomNav = computed(() => route.meta?.hideBottomNav !== true)
   background: #ffffff;
   display: flex;
   flex-direction: column;
+
 }
 
 .app-shell__pages {

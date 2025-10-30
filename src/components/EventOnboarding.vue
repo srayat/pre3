@@ -32,7 +32,7 @@
             You've received <span class="text-positive text-weight-bold">10,000 PreMoney</span>
           </div>
           <div class="text-body1">
-            Welcome to the event! You now have 10,000 PreMoney to invest in innovative startups. 
+            Welcome to the event! You now have 10,000 PreMoney to invest in today's startups. 
             This fictional currency lets you practice investment strategies risk-free.
           </div>
         </div>
@@ -59,10 +59,10 @@
           <div class="text-h4 text-weight-bold q-mb-md">Rules</div>
           <div class="text-left">
             <ul class="q-pl-md">
-              <li class="q-mb-sm">You start with 10,000 PreMoney</li>
+              <li class="q-mb-sm">You start with 10,000 PreMoney for the event</li>
               <li class="q-mb-sm">Invest in any startup listed in the event</li>
-              <li class="q-mb-sm">Monitor your portfolio performance in real-time</li>
-              <li class="q-mb-sm">Leaderboard rankings update every hour</li>
+              <li class="q-mb-sm">You can change your investments anytime till event closes on the app</li>
+              <li class="q-mb-sm">Your max-limit is 10,000 for the event</li>
               <li class="q-mb-sm">Event ends on {{ eventEndDate }}</li>
               <li>Have fun and learn about startup investing!</li>
             </ul>
@@ -81,10 +81,6 @@
             <p class="q-mb-md">
               <strong>Research:</strong> Check each startup's details, team, and market potential 
               before investing.
-            </p>
-            <p>
-              <strong>Monitor:</strong> Keep an eye on your portfolio and market changes. 
-              Be ready to adjust your strategy!
             </p>
           </div>
         </div>

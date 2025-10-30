@@ -2,8 +2,7 @@
   <q-page class="my-events-page column q-pa-lg">
     <div class="my-events-content column">
       <div class="row items-center q-gutter-sm q-mb-sm">
-        <q-btn flat round icon="arrow_back" color="primary" @click="goBack" />
-        <div class="text-h5 text-primary text-weight-bold">My Events</div>
+        <div class="text-h5 text-primary text-weight-bold q-pt-lg">My Events</div>
       </div>
 
       <div class="text-body1 text-grey-7 q-mb-md">
@@ -42,11 +41,11 @@
             </q-badge>
           </div>
 
-          <div class="text-body2 text-grey-6 q-mt-xs">{{ event.displayDate }}</div>
+          <div class="text-body2 text-grey-6 q-mt-xs">Event Date: {{ event.displayDate }}</div>
 
           <div class="row items-center justify-between q-mt-sm">
-            <div class="text-caption text-uppercase text-weight-medium text-grey-7">
-              Status: <span :class="statusColorClass(event.status)" class="text-weight-bold">{{
+            <div class="text-caption text-uppercase text-weight-medium text-grey-8">
+              Event Status: <span :class="statusColorClass(event.status)" class="text-weight-bold">{{
                 event.statusLabel
               }}</span>
             </div>
@@ -98,9 +97,10 @@ function statusColorClass(status) {
   return 'text-grey-6'
 }
 
-function goBack() {
-  router.back()
-}
+// link to go back to previous page
+// function goBack() {
+//  router.back()
+// }
 
 async function fetchEvents() {
   const user = auth.currentUser

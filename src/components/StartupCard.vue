@@ -35,28 +35,13 @@
 
       <!-- Investment Section -->
       <div class="investment-section">
-        <div class="text-h6 q-mb-sm">Invest with PreMoney</div>
-        
-        <!-- Quick Investment Buttons -->
-        <div class="row q-gutter-xs q-mb-md">
-          <q-btn 
-            v-for="amount in quickAmounts" 
-            :key="amount"
-            outline 
-            color="primary"
-            :label="formatCurrency(amount)"
-            @click="investmentAmount = amount"
-            class="quick-invest-btn"
-          />
-        </div>
-
         <!-- Custom Amount Input -->
         <div class="row items-center q-gutter-sm">
           <q-input
             v-model.number="investmentAmount"
             type="number"
             placeholder="Custom amount"
-            :min="0"
+            :min="10"
             :max="maxInvestment"
             dense
             class="col-grow"
@@ -162,7 +147,7 @@ export default {
 }
 
 .startup-card:hover {
-  transform: translateY(-2px);
+  background: #f1f1f1;
 }
 
 .quick-invest-btn {

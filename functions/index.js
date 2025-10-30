@@ -26,3 +26,5 @@ setGlobalOptions({ maxInstances: 10 });
 exports.reservePersonByEmail = require("./reservePersonByEmail").reservePersonByEmail;
 exports.linkUserToPerson = require("./onUserCreate").linkUserToPerson;
 exports.helloWorld = require("./helloWorld").helloWorld;
+exports.logStartupNameChange = require("./logStartupNameChange").logStartupNameChange;
+

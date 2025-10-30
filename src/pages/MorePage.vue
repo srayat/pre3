@@ -1,8 +1,8 @@
 <template>
   <q-page class="more-page column q-pa-lg">
-    <div class="text-h5 text-weight-bold text-primary q-mb-sm">More</div>
+    <div class="text-h5 text-weight-bold text-primary q-pt-lg">More</div>
     <div class="text-body1 text-grey-7 q-mb-lg">
-      Quick actions and settings curated just for you.
+      Quick actions and settings.
     </div>
 
     <q-card flat bordered class="actions-card">
@@ -12,11 +12,11 @@
             <q-icon :name="action.icon" color="primary" />
           </q-item-section>
           <q-item-section>
-            <q-item-label class="text-weight-medium">{{ action.label }}</q-item-label>
-            <q-item-label caption>{{ action.caption }}</q-item-label>
+            <q-item-label class="text-weight-medium text-subtitle1 q-pt-sm">{{ action.label }}</q-item-label>
+            <q-item-label class="text-subtitle2 text-grey-7 q-pb-sm">{{ action.caption }}</q-item-label>
           </q-item-section>
           <q-item-section side>
-            <q-icon name="chevron_right" color="grey-5" />
+            <q-icon name="chevron_right" color="grey-7" />
           </q-item-section>
         </q-item>
       </q-list>
@@ -51,7 +51,7 @@ const actions = [
   {
     key: 'create-startup',
     icon: 'rocket_launch',
-    label: 'Create a Startup Page',
+    label: 'Add a Startup Page',
     caption: 'Launch your startup profile',
   },
   {
@@ -96,6 +96,11 @@ async function handleAction(action) {
 
   if (action.key === 'edit-profile') {
     await router.push('/onboarding')
+    return
+  }
+
+  if (action.key === 'create-startup') {
+    await router.push('/add-startup')
     return
   }
 

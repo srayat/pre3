@@ -1,7 +1,7 @@
 <template>
   <q-page class="event-manage-page column q-pa-lg">
     <!-- Main header - ONLY SHOW WHEN NO ACTIVE SECTION -->
-    <div v-if="!activeSection" class="page-width row items-center q-col-gutter-sm">
+    <div v-if="!activeSection" class="page-width row items-center q-col-gutter-sm q-py-lg">
       <q-btn flat round icon="arrow_back" color="primary" @click="goBack" />
       <div class="text-h5 text-weight-bold text-primary q-ml-sm">
         Manage Event

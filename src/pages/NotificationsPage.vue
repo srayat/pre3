@@ -1,6 +1,6 @@
 <template>
   <q-page class="notifications-page column q-pa-lg">
-    <div class="text-h5 text-weight-bold text-primary q-mb-sm">Alerts</div>
+    <div class="text-h5 text-weight-bold text-primary q-pt-lg">Notifications</div>
     <div class="text-body1 text-grey-7 q-mb-lg">
       You will see important updates and reminders here.
     </div>

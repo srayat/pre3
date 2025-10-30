@@ -21,7 +21,7 @@
             label="5-Digit Code"
             mask="#####"
             fill-mask
-            unmasked-value
+            unmasked-value outlined 
             :rules="[val => val.length === 5 && /^\d+$/.test(val) || 'Please enter 5 digits']"
             input-class="text-h5 text-center letter-spacing-4"
             class="full-width"
@@ -41,7 +41,7 @@
             color="primary"
             size="lg"
             :loading="isLoading"
-            class="full-width q-mt-lg"
+            class="q-mt-lg q-px-lg"
           >
             <template v-slot:loading>
               <q-spinner-hourglass class="on-left" />
@@ -52,7 +52,7 @@
       </q-form>
 
       <!-- Updated Help Text -->
-      <div class="text-caption text-grey-6 q-mt-xl text-center">
+      <div class="text-grey-6 q-mt-xl text-center text-body1">
         <div>Don't have a code?</div>
         <div>Contact your event organizer to get your unique 5-digit event code.</div>
       </div>

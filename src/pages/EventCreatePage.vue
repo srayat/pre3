@@ -1,7 +1,7 @@
 <template>
   <q-page class="event-create-page column q-pa-lg">
     <!-- Header -->
-    <div class="row items-center q-mb-lg">
+    <div class="row items-center q-mb-lg q-pt-lg">
       <q-btn flat round icon="arrow_back" color="primary" @click="goBack" />
       <div class="text-h5 text-weight-bold text-primary q-ml-sm">Create an Event</div>
     </div>

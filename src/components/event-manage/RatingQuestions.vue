@@ -3,7 +3,7 @@
     <q-card flat class="q-pa-md">
       <!-- Header with Enable/Disable Toggle -->
       <div class="row items-center justify-between q-mb-md">
-        <div class="text-h6">Rating Questions</div>
+        <div class="text-h6 q-pt-lg">Rating Questions</div>
         <q-toggle
           v-model="questionsEnabled"
           label="Enable Rating Questions"

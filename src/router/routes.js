@@ -1,3 +1,5 @@
+import { ownerGuard } from './guards/ownerGuard'
+
 const routes = [
   {
     path: '/',
@@ -76,6 +78,24 @@ const routes = [
         meta: { requiresAuth: true },
       },
       {
+        path: 'add-startup',
+        component: () => import('pages/AddStartupPage.vue'),
+        meta: { requiresAuth: true }
+      },
+      {
+        path: '/startup/:id/edit',
+        name: 'EditStartupPage',
+        component: () => import('pages/EditStartupPage.vue'),
+        meta: { requiresAuth: true }
+      },
+
+      {
+        path: '/startup/:id',
+        name: 'StartupDetailPage',
+        component: () => import('pages/StartupDetailPage.vue'),
+        meta: { requiresAuth: true },
+      },
+      {
         path: 'events',
         component: () => import('pages/MyEventsPage.vue'),
         meta: { requiresAuth: true },
@@ -90,6 +110,13 @@ const routes = [
         component: () => import('pages/EventManagePage.vue'),
         meta: { requiresAuth: true, hideBottomNav: true },
       },
+      {
+        path: '/startup/:id/edit',
+        name: 'EditStartupPage',
+        component: () => import('pages/EditStartupPage.vue'),
+        beforeEnter: ownerGuard,
+        meta: { requiresAuth: true }
+      }
     ],
   },
 

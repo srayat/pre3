@@ -4,7 +4,7 @@
       <div class="text-h5 text-weight-bold text-primary q-mb-xs">
         {{ cardTitle }}
       </div>
-      <div class="text-body2 text-grey-7 q-mb-lg">
+      <div class="text-body1 text-grey-7 q-mb-lg">
         {{ cardMessage }}
       </div>
       <q-form @submit.prevent="handleSubmit" class="column q-gutter-md">
@@ -25,12 +25,12 @@
           class="q-py-sm"
           :label="buttonLabel"
           :loading="loading"
-          unelevated
+          unelevated 
           no-caps
         />
       </q-form>
 
-      <q-banner v-if="state.awaitingEmailForLink" rounded class="bg-grey-2 text-grey-8 q-mt-md">
+      <q-banner v-if="state.awaitingEmailForLink" rounded class="bg-grey-2 text-grey-8 text-body1 q-mt-md">
         Enter the same email address you used to request the sign-in link, then select
         <span class="text-weight-medium">Complete Sign-In</span>.
       </q-banner>

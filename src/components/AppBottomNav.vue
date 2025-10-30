@@ -33,11 +33,11 @@ const navItems = [
   bottom: 0;
   transform: translateX(-50%);
   width: 100%;
-  max-width: 580px;
+  max-width: var(--app-max-width);
   background: #ffffff;
   border-top: 1px solid rgba(0, 0, 0, 0.05);
   box-shadow: 0 -8px 18px rgba(15, 35, 95, 0.08);
-  border-radius: 18px 18px 0 0;
+  border-radius: 8px 8px 0 0;
   padding: 8px 16px calc(8px + env(safe-area-inset-bottom, 0));
   box-sizing: border-box;
   z-index: 1000;

@@ -1,4 +1,12 @@
 
+## v0.0.8
+- User can create a startup page
+- User can then edit that startup details
+- The name changes are logged in firestore and the history is maintained
+- Some security rules have been changed
+- Code added to prevent user manipulating the url to access someone else's startup profile edit page
+
+
 ## v0.0.7
 - Another major upgrade in this version
 - The Event Management System is complete

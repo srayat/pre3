@@ -4,6 +4,8 @@ html, body {
     overscroll-behavior-y: none;
 }
 
+
+
 :root {
  --app-deep-blue: #0F1A2B;
   --app-dusty-blue: #52677D;
@@ -35,6 +37,19 @@ html, body {
   --space-xl: 32px;
   --space-xxl: 48px;
 
+  --app-max-width: 580px;
 
 
+}
+
+@import url('https://fonts.googleapis.com/css2?family=Caprasimo&display=swap');
+.capras {
+  font-family: 'Caprasimo', Georgia, serif;
+}
+.app-max-width {
+    max-width: var(--app-max-width);
+}
+
+.page-heading {
+    padding-top: var(--space-lg);
 }
