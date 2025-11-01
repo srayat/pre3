@@ -1,30 +1,52 @@
 /**
- * Import function triggers from their respective submodules:
- *
- * const {onCall} = require("firebase-functions/v2/https");
- * const {onDocumentWritten} = require("firebase-functions/v2/firestore");
- *
- * See a full list of supported triggers at https://firebase.google.com/docs/functions
+ * Firebase Functions Entry Point
  */
 
-const {setGlobalOptions} = require("firebase-functions");
+const { setGlobalOptions } = require('firebase-functions')
+const { onCall } = require('firebase-functions/v2/https')
 
-// For cost control, you can set the maximum number of containers that can be
-// running at the same time. This helps mitigate the impact of unexpected
-// traffic spikes by instead downgrading performance. This limit is a
-// per-function limit. You can override the limit for each function using the
-// `maxInstances` option in the function's options, e.g.
-// `onRequest({ maxInstances: 5 }, (req, res) => { ... })`.
-// NOTE: setGlobalOptions does not apply to functions using the v1 API. V1
-// functions should each use functions.runWith({ maxInstances: 10 }) instead.
-// In the v1 API, each function can only serve one request per container, so
-// this will be the maximum concurrent request count.
-setGlobalOptions({ maxInstances: 10 });
+// ✅ Initialize Firebase Admin SDK FIRST
+const admin = require('firebase-admin')
+admin.initializeApp()
 
-// Export modular functions.
+// ✅ THEN import custom functions that use Firestore
+const { sendFounderInvite } = require('./sendFounderInvite')
+const { createEvent, testAddUserDoc } = require('./createEvent')
+const { getHostEvents } = require("./getHostEvents");
+const { 
+  testWriteUserDoc, 
+  testWriteUserSubcollection, 
+  testReadUserDoc,
+  testBatchWrite 
+} = require('./testUserWrite');
+const { defineSecret } = require('firebase-functions/params');
+const sendgridApiKey = defineSecret('SENDGRID_API_KEY');
 
-exports.reservePersonByEmail = require("./reservePersonByEmail").reservePersonByEmail;
-exports.linkUserToPerson = require("./onUserCreate").linkUserToPerson;
-exports.helloWorld = require("./helloWorld").helloWorld;
-exports.logStartupNameChange = require("./logStartupNameChange").logStartupNameChange;
+
+// Optional global options for cost control
+setGlobalOptions({ maxInstances: 10 })
+
+// ✅ Export modular functions (v1 style)
+exports.reservePersonByEmail = require('./reservePersonByEmail').reservePersonByEmail
+exports.linkUserToPerson = require('./onUserCreate').linkUserToPerson
+exports.helloWorld = require('./helloWorld').helloWorld
+exports.logStartupNameChange = require('./logStartupNameChange').logStartupNameChange
+
+// ✅ Export v2 callable functions
+exports.sendFounderInvite = onCall({ cors: true }, sendFounderInvite)
+exports.getHostEvents = onCall({ cors: true }, getHostEvents);
+exports.createEvent = onCall({ cors: true }, createEvent);
+exports.testAddUserDoc = onCall({ cors: true }, testAddUserDoc);
+
+exports.sendFounderInvite = onCall({ cors: true, secrets: [sendgridApiKey]}, sendFounderInvite);
+
+// 🧪 Test functions for debugging /users/ writes
+exports.testWriteUserDoc = onCall({ cors: true }, testWriteUserDoc);
+exports.testWriteUserSubcollection = onCall({ cors: true }, testWriteUserSubcollection);
+exports.testReadUserDoc = onCall({ cors: true }, testReadUserDoc);
+exports.testBatchWrite = onCall({ cors: true }, testBatchWrite);
+
+
+
+
 

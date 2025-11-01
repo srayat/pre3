@@ -24,6 +24,7 @@
           </div>
         </div>
 
+        <!-- ✅ Event Cards -->
         <q-card
           v-for="event in events"
           :key="event.id"
@@ -41,17 +42,20 @@
             </q-badge>
           </div>
 
-          <div class="text-body2 text-grey-6 q-mt-xs">Event Date: {{ event.displayDate }}</div>
+          <div class="text-body2 text-grey-6 q-mt-xs">
+            Event Date: {{ event.displayDate }}
+          </div>
 
           <div class="row items-center justify-between q-mt-sm">
             <div class="text-caption text-uppercase text-weight-medium text-grey-8">
-              Event Status: <span :class="statusColorClass(event.status)" class="text-weight-bold">{{
-                event.statusLabel
-              }}</span>
+              Event Status:
+              <span :class="statusColorClass(event.status)" class="text-weight-bold">
+                {{ event.statusLabel }}
+              </span>
             </div>
             <q-btn
-              :label="event.primaryActionLabel"
-              :color="event.primaryActionColor"
+              :label="event.primaryActionLabel || 'Manage'"
+              :color="event.primaryActionColor || 'primary'"
               size="sm"
               no-caps
               unelevated
@@ -65,174 +69,71 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue'
+
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { collection, collectionGroup, doc, getDoc, getDocs, query, where } from 'firebase/firestore'
+import { collection, doc, getDoc, getDocs } from 'firebase/firestore'
 import { auth, db } from 'boot/firebase'
+import { onAuthStateChanged } from 'firebase/auth'
 import { useQuasar } from 'quasar'
 
 const router = useRouter()
 const $q = useQuasar()
-
 const events = ref([])
 const loading = ref(true)
 
-const STATUS_LABELS = {
-  draft: 'Draft',
-  live: 'Live',
-  ended: 'Ended',
-}
-
-const ROLE_LABELS = {
-  host: 'Host',
-  startup: 'Startup',
-  investor: 'Investor',
-  judge: 'Judge',
-}
-
 function statusColorClass(status) {
   if (status === 'live') return 'text-positive'
-  if (status === 'draft') return 'text-warning'
+  if (status === 'draft' || status === 'setup') return 'text-warning'
   if (status === 'ended') return 'text-negative'
   return 'text-grey-6'
 }
 
-// link to go back to previous page
-// function goBack() {
-//  router.back()
-// }
-
-async function fetchEvents() {
-  const user = auth.currentUser
-  if (!user) {
-    loading.value = false
-    router.replace('/sign-in')
-    return
-  }
-
+async function fetchEvents(uid) {
   try {
+    const hostedRef = collection(db, `users/${uid}/hostedEvents`)
+    const hostedSnap = await getDocs(hostedRef)
     const eventsList = []
-    const eventCache = new Map()
-    const seen = new Set()
 
-    async function addEventWithRole(eventId, role) {
-      const key = `${eventId}-${role}`
-      if (seen.has(key)) {
-        return
-      }
-
-      let data = eventCache.get(eventId)
-      if (!data) {
-        const eventDoc = await getDoc(doc(db, 'events', eventId))
-        if (!eventDoc.exists()) {
-          return
-        }
-        data = eventDoc.data()
-        eventCache.set(eventId, data)
-      }
-
-      eventsList.push(buildEventEntry(eventId, data, role))
-      seen.add(key)
-    }
-
-    const hostQuery = query(collection(db, 'events'), where('hostUid', '==', user.uid))
-    const hostedSnap = await getDocs(hostQuery)
-
-    for (const docSnap of hostedSnap.docs) {
-      const data = docSnap.data()
-      const eventId = docSnap.id
-
-      eventCache.set(eventId, data)
-      await addEventWithRole(eventId, 'host')
-    }
-
-    const rolesToCheck = [
-      { role: 'startup', path: 'startups' },
-      { role: 'judge', path: 'judges' },
-    ]
-
-    for (const { role, path } of rolesToCheck) {
-      const roleQuery = query(collectionGroup(db, path), where('linkedUid', '==', user.uid))
-      const roleSnap = await getDocs(roleQuery)
-
-      for (const roleDoc of roleSnap.docs) {
-        const eventRef = roleDoc.ref.parent?.parent
-        if (!eventRef) {
-          continue
-        }
-        await addEventWithRole(eventRef.id, role)
+    for (const hostedDoc of hostedSnap.docs) {
+      const eventId = hostedDoc.id
+      const eventRef = doc(db, 'events', eventId)
+      const eventSnap = await getDoc(eventRef)
+      if (eventSnap.exists()) {
+        const data = eventSnap.data()
+        eventsList.push({
+          id: eventId,
+          name: data.name || 'Untitled Event',
+          status: data.status || 'setup',
+          statusLabel: data.status || 'Setup',
+          roleLabel: 'Host',
+          displayDate: data.date
+            ? new Date(data.date).toLocaleDateString()
+            : 'Date TBD',
+        })
       }
     }
 
-    events.value = eventsList.sort((a, b) => (a.updatedAt < b.updatedAt ? 1 : -1))
+    events.value = eventsList
   } catch (error) {
-    console.error(error)
-    $q.notify({ type: 'negative', message: 'Unable to load events. Please try again.' })
+    console.error('Error fetching events:', error)
+    $q.notify({ type: 'negative', message: 'Unable to load events.' })
   } finally {
     loading.value = false
   }
 }
 
-function buildEventEntry(id, data, role) {
-  const status = data.status || 'draft'
-  return {
-    id,
-    name: data.name || 'Untitled Event',
-    status,
-    statusLabel: STATUS_LABELS[status] || status,
-    role,
-    roleLabel: ROLE_LABELS[role] || role,
-    hostUid: data.hostUid,
-    date: data.date || null,
-    displayDate: data.date ? new Date(data.date).toLocaleDateString() : 'Date TBD',
-    primaryActionLabel: computePrimaryLabel(status, role),
-    primaryActionColor: computePrimaryColor(status, role),
-    updatedAt: data.updatedAt?.toMillis?.() || 0,
-  }
-}
-
-function computePrimaryLabel(status, role) {
-  if (status === 'ended') return 'View'
-  if (status === 'live') {
-    return role === 'host' ? 'Monitor' : 'Join'
-  }
-  if (status === 'draft') {
-    return role === 'host' ? 'Continue Setup' : 'Awaiting Host'
-  }
-  return 'Open'
-}
-
-function computePrimaryColor(status, role) {
-  if (status === 'ended') return 'primary'
-  if (status === 'live') return role === 'host' ? 'warning' : 'positive'
-  if (status === 'draft') return role === 'host' ? 'primary' : 'grey-6'
-  return 'primary'
-}
-
 function handlePrimaryAction(event) {
-  if (event.status === 'ended') {
-    router.push({ path: `/events/${event.id}`, query: { mode: 'view' } })
-    return
-  }
-
-  if (event.status === 'draft' && event.role === 'host') {
-    router.push(`/events/${event.id}`)
-    return
-  }
-
-  if (event.status === 'live') {
-    if (event.role === 'host') {
-      router.push({ path: `/events/${event.id}`, query: { mode: 'monitor' } })
-    } else {
-      router.push({ path: `/events/${event.id}`, query: { mode: 'join' } })
-    }
-    return
-  }
-
+  if (!event || !event.id) return
   router.push(`/events/${event.id}`)
 }
 
-onMounted(fetchEvents)
+onMounted(() => {
+  onAuthStateChanged(auth, (user) => {
+    if (user) fetchEvents(user.uid)
+    else router.replace('/sign-in')
+  })
+})
 </script>
 
 <style scoped>
@@ -242,55 +143,20 @@ onMounted(fetchEvents)
   overflow: hidden;
   padding-bottom: 100px;
 }
-
-.my-events-content {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  width: 100%;
-}
-
 .events-list {
   display: flex;
   flex-direction: column;
   gap: 16px;
-  width: 100%;
 }
-
-.event-card,
-.skeleton-card {
+.event-card {
   border-radius: 4px;
   box-shadow: 0 18px 32px rgba(15, 35, 95, 0.08);
   padding: 18px;
-  width: 100%;
+  cursor: pointer;
+  transition: transform 0.1s ease, box-shadow 0.2s ease;
 }
-
-.empty-state {
-  border-radius: 18px;
-  background: rgba(48, 113, 198, 0.08);
-  padding: 36px 24px;
+.event-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 18px 40px rgba(15, 35, 95, 0.15);
 }
-
-.event-name {
-  color: var( --app-mifnight-blue ) !important;
-}
-
-:deep(.role-badge) {
-  font-weight: 600;
-  font-size: 1em;
-  letter-spacing: 0.05em;
-  background: none !important;
-  color: #444 !important;
-}
-
-.q-btn {
-  color: var( --app-midnight-blue ) !important;
-  font-size: 0.9em !important;
-  background: var( --app-harper-blue) !important;
-}
-
-.q-btn:hover {
-  background: var( --app-light-steel-3) !important;
-}
-
 </style>

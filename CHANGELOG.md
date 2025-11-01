@@ -1,4 +1,11 @@
 
+## v0.0.9
+- User-Host will now add founder email instead of startup info
+- Send Invite to Founder sends an email to the founder
+- Bugs fixed for Firebase v1 and v2 issues 
+- Cloud functions implemented
+
+
 ## v0.0.8
 - User can create a startup page
 - User can then edit that startup details
