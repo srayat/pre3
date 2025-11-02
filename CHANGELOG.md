@@ -1,4 +1,7 @@
 
+## v0.1.0
+- UI fixes
+
 ## v0.0.9
 - User-Host will now add founder email instead of startup info
 - Send Invite to Founder sends an email to the founder

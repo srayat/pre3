@@ -37,12 +37,12 @@
             <div class="text-subtitle1 text-weight-bold text-primary event-name">
               {{ event.name }}
             </div>
-            <q-badge align="middle" color="primary" text-color="white" class="role-badge">
+            <q-badge align="middle" class="role-badge text-body2 text-grey-8 bg-transparent">
               [ {{ event.roleLabel }} ]
             </q-badge>
           </div>
 
-          <div class="text-body2 text-grey-6 q-mt-xs">
+          <div class="text-body2 text-grey-8 q-mt-xs q-mb-md">
             Event Date: {{ event.displayDate }}
           </div>
 
@@ -56,7 +56,7 @@
             <q-btn
               :label="event.primaryActionLabel || 'Manage'"
               :color="event.primaryActionColor || 'primary'"
-              size="sm"
+              class="text-body2 q-py-sm"
               no-caps
               unelevated
               @click.stop="handlePrimaryAction(event)"
@@ -156,7 +156,7 @@ onMounted(() => {
   transition: transform 0.1s ease, box-shadow 0.2s ease;
 }
 .event-card:hover {
-  transform: translateY(-3px);
   box-shadow: 0 18px 40px rgba(15, 35, 95, 0.15);
+  background: #f1f1f1;
 }
 </style>

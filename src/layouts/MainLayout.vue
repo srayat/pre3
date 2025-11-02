@@ -1,7 +1,7 @@
 <template>
   <q-layout view="lHh Lpr lFf" class="app-layout">
-    <q-header class="text-h5 row justify-center app-max-width" style="height: 44px; margin: 0 auto;">
-      Pre3.0
+    <q-header class="text-h5 row justify-start app-max-width items-center q-pl-lg" style="height: 44px; margin: 0 auto;">
+      <img src="https://firebasestorage.googleapis.com/v0/b/pre3-36e57.firebasestorage.app/o/public-assets%2Flogo_small_white.png?alt=media&token=bf8fa057-13c2-484b-8e3a-f65ec8bfdd51" style="height: 30px;">
     </q-header>
     <div class="app-shell">
       <q-page-container class="app-shell__pages">

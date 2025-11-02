@@ -1,7 +1,7 @@
 <template>
   <div class="judge-list-section">
-    <q-card class="q-pa-md">
-      <div class="text-h6 q-mb-md">Judges Management</div>
+    <q-card class="q-pa-md no-shadow">
+      <div class="text-h6 q-mb-md"></div>
       
       <!-- Empty state -->
       <div v-if="judges.length === 0" class="text-center q-pa-lg">
@@ -39,9 +39,9 @@
               </div>
               
               <!-- Judge Email -->
-              <div class="judge-email">
+              <div class="judge-email text-grey-8">
                 <q-icon name="email" size="sm" />
-                <span>{{ judge.email || 'No email provided' }}</span>
+                <span class="text-body1">{{ judge.email || 'No email provided' }}</span>
               </div>
             </div>
             
@@ -76,7 +76,7 @@
             color="primary"
             outline
             no-caps
-            class="q-py-sm full-width"
+            class="q-py-sm q-mt-lg full-width bg-blue-grey-1"
             icon="quiz"
             label="Configure Rating Questions Next"
             @click="$emit('open-section', 'rating')"
@@ -209,7 +209,6 @@ const deleteJudge = async (judge) => {
 }
 
 .judge-card:hover {
-  transform: translateX(4px);
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
   border-color: #2196f3;
 }

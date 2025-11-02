@@ -19,12 +19,12 @@
           <q-icon name="event" size="lg" color="primary" class="q-mr-md" />
           <div class="col">
             <div class="text-h6 text-weight-bold">Event Info</div>
-            <div class="text-caption text-grey">
+            <div class="text-body2 text-grey-8">
               View and edit event details
             </div>
           </div>
-          <q-badge v-if="eventData" color="primary">
-            {{ eventData.eventName || 'Unnamed' }}
+          <q-badge v-if="eventData" color="primary" class="text-subtitle2">
+            {{ eventData.eventName || 'Manage' }}
           </q-badge>
         </q-card-section>
       </q-card>
@@ -35,11 +35,11 @@
           <q-icon name="business_center" size="lg" color="primary" class="q-mr-md" />
           <div class="col">
             <div class="text-h6 text-weight-bold">Add Startups</div>
-            <div class="text-caption text-grey">
+            <div class="text-body2 text-grey-8">
               Manage pitching startups
             </div>
           </div>
-          <q-badge color="primary">
+          <q-badge color="primary" class="text-subtitle2">
             {{ startupCount }} added
           </q-badge>
         </q-card-section>
@@ -51,11 +51,11 @@
           <q-icon name="gavel" size="lg" color="primary" class="q-mr-md" />
           <div class="col">
             <div class="text-h6 text-weight-bold">Add Judges</div>
-            <div class="text-caption text-grey">
+            <div class="text-body2 text-grey-8">
               Manage event judges
             </div>
           </div>
-          <q-badge color="primary">
+          <q-badge color="primary" class="text-subtitle2">
             {{ judgeCount }} added
           </q-badge>
         </q-card-section>
@@ -67,11 +67,11 @@
           <q-icon name="quiz" size="lg" color="primary" class="q-mr-md" />
           <div class="col">
             <div class="text-h6 text-weight-bold">Rating Questions</div>
-            <div class="text-caption text-grey">
+            <div class="text-body2 text-grey-8">
               Configure evaluation criteria
             </div>
           </div>
-          <q-badge :color="ratingQuestionsEnabled ? 'positive' : 'grey'">
+          <q-badge :color="ratingQuestionsEnabled ? 'positive' : 'grey'"  class="text-subtitle2">
             {{ ratingQuestionsEnabled ? 'Enabled' : 'Not set' }}
           </q-badge>
         </q-card-section>
@@ -105,7 +105,8 @@ defineEmits(['open-section'])
 }
 
 .setup-card:hover {
-  transform: translateX(4px);
   box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+  background: #e8e8e8;
+  border: 1px solid #d1d1d1;
 }
 </style>

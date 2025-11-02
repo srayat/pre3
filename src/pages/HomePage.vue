@@ -6,7 +6,7 @@
       <div class="text-center q-mb-xl">
         <q-icon name="qr_code_scanner" size="64px" color="primary" class="q-mb-md" />
         <div class="text-h4 text-weight-bold">Enter Event Code</div>
-        <div class="text-subtitle1 text-grey-7 q-mt-sm">
+        <div class="text-subtitle1 text-blue-grey-10 q-mt-sm">
           Enter the 5-digit code provided by your event organizer
         </div>
       </div>
@@ -52,9 +52,9 @@
       </q-form>
 
       <!-- Updated Help Text -->
-      <div class="text-grey-6 q-mt-xl text-center text-body1">
+      <div class="text-grey-8 q-mt-xl text-center text-body1">
         <div>Don't have a code?</div>
-        <div>Contact your event organizer to get your unique 5-digit event code.</div>
+        <div>Contact your event organizer to get the 5-digit event code.</div>
       </div>
     </div>
   </q-page>

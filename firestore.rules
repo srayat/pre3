@@ -97,11 +97,16 @@ service cloud.firestore {
 
 
 // TEMPORARY — test only
-match /users/{userId}/hostedEvents/{eventId} {
-  allow read, write: if true;
-}
+// match /users/{userId}/hostedEvents/{eventId} {
+//  allow read, write: if true;
+// }
 
 
+// Allow public read access to everything inside "public-assets/"
+    match /public-assets/{allPaths=**} {
+      allow read: if true;            // anyone can view/download
+      allow write: if false;          // nobody can upload or delete
+    }
 
     /* =====================================================
        🔹 Catch-all: Deny everything else

@@ -212,10 +212,3 @@ export default {
   },
 }
 </script>
-
-
-
-<!-- 
-  No additional styles needed - using Quasar's utility classes
-  and component styling for consistent design language
--->

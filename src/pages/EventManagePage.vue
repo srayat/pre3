@@ -1,11 +1,12 @@
 <template>
   <q-page class="event-manage-page column q-pa-lg">
     <!-- Main header - ONLY SHOW WHEN NO ACTIVE SECTION -->
-    <div v-if="!activeSection" class="page-width row items-center q-col-gutter-sm q-py-lg">
+    <div v-if="!activeSection" class="page-width row justify-between items-center q-col-gutter-sm q-py-lg">
       <q-btn flat round icon="arrow_back" color="primary" @click="goBack" />
       <div class="text-h5 text-weight-bold text-primary q-ml-sm">
         Manage Event
       </div>
+      <div></div>
     </div>
 
     <!-- Conditional rendering: Either show setup steps OR active section -->
@@ -24,7 +25,7 @@
     <!-- Full-width sections when active -->
     <div v-else class="page-width full-section">
       <!-- Section header with back button - REPLACES MAIN HEADER -->
-      <div class="row items-center q-mb-md">
+      <div class="row justify-between items-center q-mb-md q-mt-lg">
         <q-btn 
           flat 
           round 
@@ -36,6 +37,7 @@
         <div class="text-h5 text-weight-bold">
           {{ getSectionTitle(activeSection) }}
         </div>
+        <div></div>
       </div>
 
       <!-- Active section content -->

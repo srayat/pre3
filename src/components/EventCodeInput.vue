@@ -64,8 +64,8 @@
       </q-form>
 
       <!-- Help Text for Users -->
-      <div class="text-caption text-grey-6 q-mt-xl text-center">
-        <div>Don't have a code?</div>
+      <div class="text-body1 text-grey-8 q-mt-xl text-center">
+        <div>Don't have a code? 777</div>
         <div>Contact your event organizer to get your unique 4-digit event code.</div>
       </div>
     </div>
