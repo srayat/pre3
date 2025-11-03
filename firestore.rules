@@ -1,118 +1,14 @@
-rules_version = '2';
+/* ---- Event Startups (TEMPORARILY RELAXED FOR TESTING) ---- */
+match /events/{eventId}/startups/{startupId} {
+  // ✅ Read: Any signed-in user can read
+  allow read: if isSignedIn();
 
-service cloud.firestore {
-  match /databases/{database}/documents {
+  // ✅ Create: Only host can create (keep existing validation if you wish)
+  allow create: if isHost(eventId) && isValidStartupData();
 
-    /* =====================================================
-       🔹 Helper Functions
-       ===================================================== */
-    function isSignedIn() {
-      return request.auth != null;
-    }
+  // ✅ Update: Allow signed-in users (optional — keep stricter if desired)
+  allow update: if isSignedIn();
 
-    function eventDoc(eventId) {
-      return get(/databases/$(database)/documents/events/$(eventId));
-    }
-
-    function isHost(eventId) {
-      return isSignedIn() && eventDoc(eventId).data.hostUid == request.auth.uid;
-    }
-
-    /* =====================================================
-       🔹 USERS + Subcollections (Host Mirrors)
-       ===================================================== */
-    match /users/{userId} {
-      // User can read & write their own profile
-      allow read, create, update: if isSignedIn() && request.auth.uid == userId;
-      allow delete: if false;
-
-      // 🔹 Hosted Events mirror (used for MyEventsPage)
-      match /hostedEvents/{eventId} {
-        allow read, write: if isSignedIn() && request.auth.uid == userId;
-        allow delete: if false;
-      }
-
-      // Future expansion (optional mirrors)
-      match /judgeEvents/{eventId} {
-        allow read, write: if isSignedIn() && request.auth.uid == userId;
-      }
-
-      match /startupEvents/{eventId} {
-        allow read, write: if isSignedIn() && request.auth.uid == userId;
-      }
-    }
-
-    /* =====================================================
-       🔹 EVENTS + Subcollections
-       ===================================================== */
-    match /events/{eventId} {
-      // Hosts can fully manage their own events
-      allow get, update, delete: if isHost(eventId);
-
-      // Signed-in host can create their own event
-      allow create: if isSignedIn() &&
-                    request.resource.data.hostUid == request.auth.uid;
-
-      // 🔹 General read rule — allow signed-in users to view events,
-      // but only if they are the host or it’s a public event
-      allow read: if isSignedIn() &&
-                  (resource.data.hostUid == request.auth.uid ||
-                   (resource.data.isPublic == true));
-
-      /* ---- Event Startups ---- */
-      match /startups/{startupId} {
-        allow read: if isSignedIn();
-        allow create, update, delete: if isHost(eventId);
-      }
-
-      /* ---- Event Judges ---- */
-      match /judges/{judgeId} {
-        allow read: if isSignedIn();
-        allow create, update, delete: if isHost(eventId);
-      }
-
-      /* ---- Event Investors ---- */
-      match /investors/{investorId} {
-        allow read: if isSignedIn();
-        allow create, update, delete: if isHost(eventId);
-      }
-
-      /* ---- Event Ratings ---- */
-      match /ratings/{ratingId} {
-        allow read: if isSignedIn();
-        allow create, update: if isSignedIn();
-      }
-    }
-
-    /* =====================================================
-       🔹 GLOBAL STARTUPS (root-level)
-       ===================================================== */
-    match /startups/{startupId} {
-      allow read: if true;  // public for now
-      allow create: if isSignedIn() &&
-                    request.auth.uid == request.resource.data.createdBy;
-      allow update, delete: if isSignedIn() &&
-                            request.auth.uid in resource.data.owners;
-    }
-
-
-// TEMPORARY — test only
-// match /users/{userId}/hostedEvents/{eventId} {
-//  allow read, write: if true;
-// }
-
-
-// Allow public read access to everything inside "public-assets/"
-    match /public-assets/{allPaths=**} {
-      allow read: if true;            // anyone can view/download
-      allow write: if false;          // nobody can upload or delete
-    }
-
-    /* =====================================================
-       🔹 Catch-all: Deny everything else
-       ===================================================== */
-    match /{document=**} {
-      allow read, write: if false;
-    }
-  }
+  // ✅ Delete: Allow any signed-in user (relaxed for testing)
+  allow delete: if isSignedIn();
 }

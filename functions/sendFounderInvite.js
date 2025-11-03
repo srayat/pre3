@@ -1,3 +1,97 @@
+/*
+  ──────────────────────────────────────────────────────────────────────────────
+  Cloud Function: sendFounderInvite
+  Location:       functions/sendFounderInvite.js
+  ──────────────────────────────────────────────────────────────────────────────
+  PURPOSE
+  • Triggered via HTTPS Callable Function from the client app.
+  • Handles sending an invitation email to a founder with a link
+    to claim their startup page for a given event.
+  • For Version 2 (invite-based ownership transfer), this provides
+    the backend logic to initiate the founder claim process.
+
+  USAGE CONTEXT
+  • Called from useFounderInvite().sendInvite().
+  • Accepts founderEmail and eventId as parameters.
+  • Optionally supports startupId or future extensions (e.g., token-based link).
+
+  EXAMPLE CALL
+  -------------------------------------------------------------------------------
+    const sendInvite = httpsCallable(functions, 'sendFounderInvite')
+    await sendInvite({ founderEmail: 'founder@startup.com', eventId: 'EVT123' })
+  -------------------------------------------------------------------------------
+
+  INPUT PAYLOAD
+  {
+    founderEmail: string,   // Required – recipient email
+    eventId: string,        // Required – parent event ID
+    startupId?: string      // Optional – for future direct link association
+  }
+
+  OUTPUT PAYLOAD
+  {
+    success: boolean,
+    message: string,
+    inviteId?: string,
+    claimLink?: string
+  }
+
+  FLOW (Current MVP)
+  1. Validate authentication and input.
+  2. Normalize and sanitize founderEmail.
+  3. Generate a unique claim link (simple or secure version).
+  4. Optionally record invite metadata in Firestore:
+       /events/{eventId}/founderInvites/{inviteId}
+  5. Send email via Gmail or SendGrid API.
+  6. Return response to client.
+
+  FUTURE ENHANCEMENTS
+  • Add token signing for secure claim links (Version 2B).
+  • Add resendInvite(), expiry, and invite status tracking.
+  • Add templating via SendGrid dynamic templates or MJML.
+
+  DEPENDENCIES
+  • Firebase Admin SDK
+  • nodemailer (if using Gmail)
+  • SendGrid (optional alternative)
+  • functions.https.onCall()
+
+  EXAMPLE STUB IMPLEMENTATION
+  -------------------------------------------------------------------------------
+    const { HttpsError } = require('firebase-functions/v2/https')
+    const admin = require('firebase-admin')
+    const nodemailer = require('nodemailer')
+
+    if (!admin.apps.length) admin.initializeApp()
+    const db = admin.firestore()
+
+    exports.sendFounderInvite = async (data, context) => {
+      if (!context.auth) {
+        throw new HttpsError('unauthenticated', 'Sign-in required.')
+      }
+
+      const { founderEmail, eventId } = data
+      if (!founderEmail || !eventId) {
+        throw new HttpsError('invalid-argument', 'Missing parameters.')
+      }
+
+      // Example: basic claim link (replace with secure link in v2b)
+      const claimLink = `https://pre3.app/claim?eventId=${eventId}&email=${encodeURIComponent(founderEmail)}`
+
+      // Send email (stub)
+      // await transporter.sendMail({ ... })
+
+      return { success: true, message: 'Invite email sent.', claimLink }
+    }
+  -------------------------------------------------------------------------------
+
+  LAST UPDATED: 2025-11-02
+  AUTHOR: [Your Name]
+  ──────────────────────────────────────────────────────────────────────────────
+*/
+
+
+
 // functions/sendFounderInvite.js
 const { HttpsError } = require("firebase-functions/v2/https");
 const { getFirestore, Timestamp } = require('firebase-admin/firestore');

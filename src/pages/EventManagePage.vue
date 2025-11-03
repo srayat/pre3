@@ -1,11 +1,12 @@
 <template>
   <q-page class="event-manage-page column q-pa-lg">
     <!-- Main header - ONLY SHOW WHEN NO ACTIVE SECTION -->
-    <div v-if="!activeSection" class="page-width row justify-between items-center q-col-gutter-sm q-py-lg">
+    <div
+      v-if="!activeSection"
+      class="page-width row justify-between items-center q-col-gutter-sm q-py-lg"
+    >
       <q-btn flat round icon="arrow_back" color="primary" @click="goBack" />
-      <div class="text-h5 text-weight-bold text-primary q-ml-sm">
-        Manage Event
-      </div>
+      <div class="text-h5 text-weight-bold text-primary q-ml-sm">Manage Event</div>
       <div></div>
     </div>
 
@@ -26,11 +27,11 @@
     <div v-else class="page-width full-section">
       <!-- Section header with back button - REPLACES MAIN HEADER -->
       <div class="row justify-between items-center q-mb-md q-mt-lg">
-        <q-btn 
-          flat 
-          round 
-          icon="arrow_back" 
-          color="primary" 
+        <q-btn
+          flat
+          round
+          icon="arrow_back"
+          color="primary"
           @click="handleCloseSection"
           class="q-mr-sm"
         />
@@ -74,16 +75,74 @@
         @close="handleCloseSection"
       />
     </div>
+    <!-- Show Go Live / End Event / Ended cards ONLY on main Manage Event screen -->
+    <div v-if="!activeSection">
+      <!-- 1️⃣ SETUP -->
+      <q-card v-if="status === 'setup'" class="q-pa-md q-mt-lg">
+        <div class="column items-center q-gutter-md">
+          <q-icon name="build_circle" size="48px" color="primary" />
+          <div class="text-h6 text-weight-bold">Event in Setup</div>
+          <div class="text-body2 text-grey-7 text-center q-mb-md">
+            Complete your setup and click below when you’re ready to go live.
+          </div>
+          <q-btn
+            color="positive"
+            label="Go Live"
+            icon="play_circle"
+            unelevated
+            :loading="goingLive"
+            @click="confirmGoLive"
+          />
+        </div>
+      </q-card>
+    </div>
+
+    <!-- 2️⃣ LIVE -->
+    <q-card
+      v-else-if="status === 'live'"
+      class="q-mt-lg q-pa-sm bg-transparent text-positive text-center"
+      flat
+      bordered
+      style="border-color: #2e7d32; border-width: 2px"
+    >
+      <div class="text-h6 text-weight-bold">Event is now Live</div>
+      <div class="text-subtitle1">Attendees can now join and start investing in startups.</div>
+    </q-card>
+
+    <!-- 🔴 End Event Button (outside the green card) -->
+    <div class="q-mt-md flex justify-center">
+      <q-btn
+        v-if="status === 'live'"
+        color="negative"
+        label="End Event"
+        icon="stop_circle"
+        unelevated
+        :loading="endingEvent"
+        @click="confirmEndEvent"
+        class="q-pa-lg full-width text-h6"
+      />
+    </div>
+
+    <!-- 3️⃣ ENDED -->
+    <q-card
+      v-if="status === 'ended'"
+      class="q-pa-xl q-mt-lg bg-grey-5 text-white text-center"
+      flat
+      bordered
+      style="border-color: #616161; border-width: 2px"
+    >
+      <div class="text-h6 text-weight-bold q-mb-md">⚪ Event has Ended</div>
+      <div class="text-subtitle2">This event is no longer active for participation.</div>
+    </q-card>
   </q-page>
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, onUnmounted } from 'vue'
+import { ref, watch, reactive, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useQuasar } from 'quasar'
-import { doc, collection, onSnapshot, query, orderBy } from 'firebase/firestore'
+import { doc, updateDoc, collection, onSnapshot, query, orderBy } from 'firebase/firestore'
 import { auth, db } from 'boot/firebase'
-
 
 // Component imports for event management features
 import SetupSteps from 'components/event-manage/SetupSteps.vue'
@@ -92,11 +151,13 @@ import StartupListSection from 'components/event-manage/StartupListSection.vue'
 import JudgeListSection from 'components/event-manage/JudgeListSection.vue'
 import RatingQuestionsSection from 'components/event-manage/RatingQuestionsSection.vue'
 
-
 // Vue and Quasar utilities
 const router = useRouter()
 const route = useRoute()
 const $q = useQuasar()
+const goingLive = ref(false)
+const status = ref('setup') // initial phase = setup
+const endingEvent = ref(false)
 
 // ========== REACTIVE STATES ==========
 
@@ -124,7 +185,7 @@ const recentlyCreated = ref(route.query.created === '1')
 /** @type {object} Loading states for invite operations */
 const inviteLoading = reactive({
   startup: false,
-  judge: false
+  judge: false,
 })
 
 // Firestore unsubscribe functions for cleanup
@@ -132,14 +193,13 @@ let unsubscribeEvent = null
 let unsubscribeStartups = null
 let unsubscribeJudges = null
 
-
 // Section title helper
 const getSectionTitle = (section) => {
   const titles = {
     'event-info': 'Event Information',
-    'startup': 'Manage Startups',
-    'judge': 'Manage Judges', 
-    'rating': 'Configure Rating Questions'
+    startup: 'Manage Startups',
+    judge: 'Manage Judges',
+    rating: 'Configure Rating Questions',
   }
   return titles[section] || 'Manage Section'
 }
@@ -150,10 +210,9 @@ const handleEventUpdated = (updatedEventData) => {
   $q.notify({
     type: 'positive',
     message: 'Event updated successfully!',
-    timeout: 2000
+    timeout: 2000,
   })
 }
-
 
 // ========== LIFECYCLE HOOKS ==========
 
@@ -163,7 +222,7 @@ const handleEventUpdated = (updatedEventData) => {
  */
 onMounted(() => {
   console.log('EventManagePage mounted, eventId:', eventId.value)
-  
+
   if (!eventId.value) {
     console.error('No eventId found in route parameters')
     handleInvalidEvent()
@@ -198,9 +257,10 @@ const loadEventData = async () => {
 
   try {
     const eventRef = doc(db, 'events', eventId.value)
-    
+
     // Set up real-time listener for event data
-    unsubscribeEvent = onSnapshot(eventRef, 
+    unsubscribeEvent = onSnapshot(
+      eventRef,
       // Success callback
       (snapshot) => {
         if (!snapshot.exists()) {
@@ -222,7 +282,7 @@ const loadEventData = async () => {
         // Set event data and stop loading
         eventData.value = {
           id: snapshot.id,
-          ...data
+          ...data,
         }
         eventLoading.value = false
 
@@ -233,7 +293,6 @@ const loadEventData = async () => {
         // if (recentlyCreated.value && !activeSection.value) {
         //  activeSection.value = 'startup'
         // }
-
       },
       // Error callback
       (error) => {
@@ -241,19 +300,18 @@ const loadEventData = async () => {
         $q.notify({
           type: 'negative',
           message: 'Failed to load event data. Please try again.',
-          timeout: 3000
+          timeout: 3000,
         })
         eventLoading.value = false
-      }
+      },
     )
-
   } catch (error) {
     console.error('Error setting up event listener:', error)
     eventLoading.value = false
     $q.notify({
       type: 'negative',
       message: 'Error accessing event data.',
-      timeout: 3000
+      timeout: 3000,
     })
   }
 }
@@ -266,35 +324,37 @@ const setupRealtimeListeners = () => {
   // Startups collection listener
   const startupsRef = collection(db, 'events', eventId.value, 'startups')
   const startupsQuery = query(startupsRef, orderBy('createdAt', 'desc'))
-  
-  unsubscribeStartups = onSnapshot(startupsQuery, 
+
+  unsubscribeStartups = onSnapshot(
+    startupsQuery,
     (snapshot) => {
-      startups.value = snapshot.docs.map(doc => ({
+      startups.value = snapshot.docs.map((doc) => ({
         id: doc.id,
-        ...doc.data()
+        ...doc.data(),
       }))
       console.log('Startups updated, count:', startups.value.length)
     },
     (error) => {
       console.error('Error loading startups:', error)
-    }
+    },
   )
 
   // Judges collection listener
   const judgesRef = collection(db, 'events', eventId.value, 'judges')
   const judgesQuery = query(judgesRef, orderBy('createdAt', 'desc'))
-  
-  unsubscribeJudges = onSnapshot(judgesQuery, 
+
+  unsubscribeJudges = onSnapshot(
+    judgesQuery,
     (snapshot) => {
-      judges.value = snapshot.docs.map(doc => ({
+      judges.value = snapshot.docs.map((doc) => ({
         id: doc.id,
-        ...doc.data()
+        ...doc.data(),
       }))
       console.log('Judges updated, count:', judges.value.length)
     },
     (error) => {
       console.error('Error loading judges:', error)
-    }
+    },
   )
 }
 
@@ -318,7 +378,7 @@ const handleInvalidEvent = () => {
   $q.notify({
     type: 'negative',
     message: 'Event not found or invalid event ID.',
-    timeout: 3000
+    timeout: 3000,
   })
   router.push('/events')
 }
@@ -332,7 +392,7 @@ const handleUnauthorizedAccess = () => {
   $q.notify({
     type: 'negative',
     message: 'You do not have access to manage this event.',
-    timeout: 3000
+    timeout: 3000,
   })
   router.push('/home')
 }
@@ -363,13 +423,92 @@ const submitStartup = async (startupData) => {
 }
 
 /**
- * Handles judge submission from JudgeForm component  
+ * Handles judge submission from JudgeForm component
  * @param {object} judgeData - Judge information from the form
  */
 const submitJudge = async (judgeData) => {
   console.log('Judge submission handled by JudgeForm directly:', judgeData)
   // Note: Judge saving is now handled directly in JudgeForm.vue
   // This emit is kept for potential future centralized processing
+}
+
+// Sync status from Firestore (eventData)
+watch(
+  eventData,
+  (newVal) => {
+    if (newVal && newVal.status) {
+      status.value = newVal.status
+    }
+  },
+  { immediate: true },
+)
+
+/**
+ * Activate the Event - Go Live
+ */
+// 🔹 Go Live Action
+async function confirmGoLive() {
+  $q.dialog({
+    title: 'Go Live',
+    message: 'Make this event live? Attendees will be able to join and invest.',
+    cancel: { label: 'Cancel', flat: true, color: 'grey' },
+    ok: { label: 'Yes, Go Live', color: 'positive', icon: 'rocket_launch' },
+    persistent: true,
+  }).onOk(async () => {
+    try {
+      if (!eventData.value || !eventData.value.id) {
+        $q.notify({ type: 'warning', message: 'Event not loaded yet.' })
+        return
+      }
+
+      goingLive.value = true
+      const eventRef = doc(db, 'events', eventData.value.id)
+      await updateDoc(eventRef, { status: 'live', updatedAt: new Date() })
+
+      status.value = 'live'
+      eventData.value.status = 'live'
+
+      $q.notify({ type: 'positive', message: '🚀 Event is now live!' })
+    } catch (err) {
+      console.error('❌ Go Live error:', err)
+      $q.notify({ type: 'negative', message: 'Failed to go live. Try again.' })
+    } finally {
+      goingLive.value = false
+    }
+  })
+}
+
+// 🔹 End Event Action
+async function confirmEndEvent() {
+  $q.dialog({
+    title: 'End Event',
+    message:
+      'Are you sure you want to end this event? Attendees will no longer be able to join or invest.',
+    cancel: { label: 'Cancel', flat: true, color: 'grey' },
+    ok: { label: 'Yes, End Event', color: 'negative', icon: 'stop_circle' },
+    persistent: true,
+  }).onOk(async () => {
+    try {
+      if (!eventData.value || !eventData.value.id) {
+        $q.notify({ type: 'warning', message: 'Event not loaded yet.' })
+        return
+      }
+
+      endingEvent.value = true
+      const eventRef = doc(db, 'events', eventData.value.id)
+      await updateDoc(eventRef, { status: 'ended', updatedAt: new Date() })
+
+      status.value = 'ended'
+      eventData.value.status = 'ended'
+
+      $q.notify({ type: 'warning', message: '⚪ Event has ended.' })
+    } catch (err) {
+      console.error('❌ End Event error:', err)
+      $q.notify({ type: 'negative', message: 'Failed to end event. Try again.' })
+    } finally {
+      endingEvent.value = false
+    }
+  })
 }
 
 /**
@@ -386,7 +525,7 @@ const goBack = () => {
  * Maintains consistent styling with gradient background and responsive layout
  */
 
- /* =========== temp hiding it 
+/* =========== temp hiding it
 .event-manage-page {
   min-height: 100%;
   background: linear-gradient(180deg, #eef3ff 0%, #ffffff 95%);
@@ -409,5 +548,4 @@ const goBack = () => {
   flex-direction: column;
 }
 ========================= */
-
 </style>

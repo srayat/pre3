@@ -13,15 +13,11 @@ admin.initializeApp()
 const { sendFounderInvite } = require('./sendFounderInvite')
 const { createEvent, testAddUserDoc } = require('./createEvent')
 const { getHostEvents } = require("./getHostEvents");
-const { 
-  testWriteUserDoc, 
-  testWriteUserSubcollection, 
-  testReadUserDoc,
-  testBatchWrite 
-} = require('./testUserWrite');
 const { defineSecret } = require('firebase-functions/params');
 const sendgridApiKey = defineSecret('SENDGRID_API_KEY');
-
+const { createStartup } = require('./createStartup');
+const { updateStartup } = require('./updateStartup')
+const { deleteStartup } = require('./deleteStartup')
 
 // Optional global options for cost control
 setGlobalOptions({ maxInstances: 10 })
@@ -39,12 +35,10 @@ exports.createEvent = onCall({ cors: true }, createEvent);
 exports.testAddUserDoc = onCall({ cors: true }, testAddUserDoc);
 
 exports.sendFounderInvite = onCall({ cors: true, secrets: [sendgridApiKey]}, sendFounderInvite);
+exports.createStartup = onCall({ cors: true }, createStartup);
+exports.updateStartup = onCall({ cors: true }, updateStartup)
+exports.deleteStartup = onCall({ cors: true }, deleteStartup)
 
-// 🧪 Test functions for debugging /users/ writes
-exports.testWriteUserDoc = onCall({ cors: true }, testWriteUserDoc);
-exports.testWriteUserSubcollection = onCall({ cors: true }, testWriteUserSubcollection);
-exports.testReadUserDoc = onCall({ cors: true }, testReadUserDoc);
-exports.testBatchWrite = onCall({ cors: true }, testBatchWrite);
 
 
 
