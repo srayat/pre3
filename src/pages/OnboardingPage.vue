@@ -55,15 +55,24 @@ const lastName = ref('')
 const loading = ref(false)
 const nameRules = [(val) => (!!val && val.trim().length > 0) || 'This field is required']
 
+// 🧭 Redirect if user already completed onboarding
 async function redirectIfProfileExists(user) {
   const profileRef = doc(db, 'users', user.uid)
   const profileSnap = await getDoc(profileRef)
 
   if (profileSnap.exists() && profileSnap.data()?.firstName && profileSnap.data()?.lastName) {
-    await router.replace('/home')
+    // ✅ Redirect directly to investment page if event is active
+    const savedEventId = sessionStorage.getItem('currentEventId')
+    if (savedEventId) {
+      console.log('🔁 Redirecting existing user to investment:', savedEventId)
+      await router.replace({ name: 'investment', params: { eventId: savedEventId } })
+    } else {
+      await router.replace('/home')
+    }
   }
 }
 
+// 💾 Handle onboarding form submission
 async function handleSubmit() {
   if (!auth.currentUser?.uid) {
     $q.notify({ type: 'negative', message: 'Your session expired. Please sign in again.' })
@@ -97,9 +106,18 @@ async function handleSubmit() {
     await setDoc(profileRef, payload, { merge: true })
 
     $q.notify({ type: 'positive', message: 'Profile saved. Welcome aboard!' })
-    await router.replace('/home')
+
+    // 🧭 Redirect to InvestmentPage if event exists
+    const savedEventId = sessionStorage.getItem('currentEventId')
+    console.log('✅ Redirecting after onboarding, eventId:', savedEventId)
+
+    if (savedEventId) {
+      await router.replace({ name: 'investment', params: { eventId: savedEventId } })
+    } else {
+      await router.replace('/home')
+    }
   } catch (error) {
-    console.error(error)
+    console.error('❌ Onboarding error:', error)
     $q.notify({
       type: 'negative',
       message: 'We could not save your details. Please try again.',
@@ -114,7 +132,6 @@ onMounted(async () => {
     await router.replace('/sign-in')
     return
   }
-
   await redirectIfProfileExists(auth.currentUser)
 })
 </script>

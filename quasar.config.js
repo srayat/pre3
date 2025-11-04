@@ -55,7 +55,7 @@ export default defineConfig((/* ctx */) => {
         VITE_FUNCTIONS_EMULATOR_PORT: process.env.VITE_FUNCTIONS_EMULATOR_PORT,
       },
 
-      vueRouterMode: 'hash', // available values: 'hash', 'history'
+      vueRouterMode: 'history', // available values: 'hash', 'history'
       // vueRouterBase,
       // vueDevtools,
       // vueOptionsAPI: false,
@@ -92,6 +92,7 @@ export default defineConfig((/* ctx */) => {
     devServer: {
       // https: true,
       open: true, // opens browser window automatically
+      historyApiFallback: true,
     },
 
     // https://v2.quasar.dev/quasar-cli-vite/quasar-config-file#framework

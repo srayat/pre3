@@ -1,14 +1,9 @@
 <template>
   <q-layout view="lHh Lpr lFf" class="app-layout">
-    <q-header class="app-header">
+    <q-header v-if="showHeader" class="app-header">
       <div class="app-header__content">
-        <router-link to="/" class="logo-link">
-          <img 
-            :src="logoUrl"
-            alt="Pre3 Logo"
-            class="logo-image"
-            loading="eager"
-          >
+        <router-link to="/home" class="logo-link">
+          <img :src="logoUrl" alt="Pre3 Logo" class="logo-image" loading="eager" />
         </router-link>
       </div>
     </q-header>

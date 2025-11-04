@@ -1,7 +1,6 @@
 <template>
   <q-page class="row items-center justify-center q-pa-md">
     <div class="column items-center" style="max-width: 400px; width: 100%">
-      
       <!-- Header Section -->
       <div class="text-center q-mb-xl">
         <q-icon name="qr_code_scanner" size="64px" color="primary" class="q-mb-md" />
@@ -14,15 +13,15 @@
       <!-- Code Input Form -->
       <q-form @submit="handleSubmit" class="full-width">
         <div class="column items-center q-gutter-y-md">
-          
           <!-- Updated for 5-digit numeric codes -->
           <q-input
             v-model="code"
             label="5-Digit Code"
             mask="#####"
             fill-mask
-            unmasked-value outlined 
-            :rules="[val => val.length === 5 && /^\d+$/.test(val) || 'Please enter 5 digits']"
+            unmasked-value
+            outlined
+            :rules="[(val) => (val.length === 5 && /^\d+$/.test(val)) || 'Please enter 5 digits']"
             input-class="text-h5 text-center letter-spacing-4"
             class="full-width"
             :disable="isLoading"
@@ -60,50 +59,82 @@
   </q-page>
 </template>
 
-<script>
+<script setup>
 import { ref } from 'vue'
-import { useEventStore } from 'src/stores/event-store'
 import { useRouter } from 'vue-router'
+import { useQuasar } from 'quasar'
+import { getDoc, doc } from 'firebase/firestore'
+import { db } from 'boot/firebase'
+import { useEventStore } from 'stores/event-store'
 
-export default {
-  name: 'HomePage',
-  setup() {
-    const code = ref('')
-    const eventStore = useEventStore()
-    const router = useRouter()
+const router = useRouter()
+const $q = useQuasar()
+const eventStore = useEventStore()
 
-    const handleSubmit = async () => {
-      console.log('Submit clicked, code:', code.value)
-      
-      const isValid = await eventStore.validateEventCode(code.value)
-      console.log('Validation result:', isValid)
-      console.log('Error message:', eventStore.error)
-      console.log('Current event:', eventStore.currentEvent)
-      console.log('Has completed onboarding:', eventStore.hasCompletedOnboarding)
-      
-      if (isValid) {
-        console.log('Navigation: hasCompletedOnboarding =', eventStore.hasCompletedOnboarding)
-        if (eventStore.hasCompletedOnboarding) {
-          console.log('Redirecting to /investment')
-          router.push('/investment')
-        } else {
-          console.log('Redirecting to /onboarding')
-          router.push('/onboarding')
-        }
-      } else {
-        console.log('Validation failed, error:', eventStore.error)
-      }
+const code = ref('')
+const isLoading = ref(false)
+const error = ref('')
+
+const handleSubmit = async () => {
+  error.value = ''
+  const eventCode = code.value.trim()
+
+  if (!/^\d{5}$/.test(eventCode)) {
+    error.value = 'Please enter a valid 5-digit code.'
+    return
+  }
+
+  isLoading.value = true
+
+  try {
+    const eventRef = doc(db, 'events', eventCode)
+    const snap = await getDoc(eventRef)
+
+    if (!snap.exists()) {
+      error.value = 'No event found with this code.'
+      return
     }
 
-    return {
-      code,
-      isLoading: eventStore.isLoading,
-      error: eventStore.error,
-      handleSubmit
+    const eventData = snap.data()
+    eventStore.currentEvent = { id: eventCode, ...eventData }
+
+    // Handle event states
+    if (eventData.status === 'setup') {
+      $q.dialog({
+        title: 'Event Not Live',
+        message: 'This event is still being set up. Please try again later.',
+        ok: { label: 'OK', color: 'primary' },
+      })
+      return
     }
+
+    if (eventData.status === 'ended') {
+      $q.dialog({
+        title: 'Event Ended',
+        message: 'This event has already ended.',
+        ok: { label: 'OK', color: 'primary' },
+      })
+      return
+    }
+
+    if (eventData.status === 'live') {
+      await router.replace({ name: 'event-onboarding', params: { eventId: eventCode } })
+    }
+  } catch (err) {
+    console.error('Error validating event:', err)
+    error.value = 'Unable to validate event. Please try again.'
+  } finally {
+    isLoading.value = false
   }
 }
 </script>
+
+<style scoped>
+.letter-spacing-4 {
+  letter-spacing: 0.5em;
+  padding-left: 0.5em;
+}
+</style>
 
 <style scoped>
 .letter-spacing-4 {

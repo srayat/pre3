@@ -1,15 +1,11 @@
 <template>
-  <EventOnboarding />
+  <EventOnboarding :event-id="eventId" />
 </template>
 
-<script>
-import { defineComponent } from 'vue'
-import EventOnboarding from 'src/components/EventOnboarding.vue'
+<script setup>
+import { useRoute } from 'vue-router'
+import EventOnboarding from 'components/EventOnboarding.vue'
 
-export default defineComponent({
-  name: 'EventOnboardingPage',
-  components: {
-    EventOnboarding
-  }
-})
+const route = useRoute()
+const eventId = route.params.eventId
 </script>

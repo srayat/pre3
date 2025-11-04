@@ -1,21 +1,18 @@
 <template>
   <q-page class="q-pa-lg">
     <!-- Header -->
-    <div class="row items-center q-mb-xl">
-      <q-btn icon="arrow_back" flat round @click="goBack" class="q-mr-md" />
-      <div>
-        <div class="text-h5 text-weight-bold q-pt-lg">{{ startup?.name }}</div>
-        <div class="text-h6 text-grey-7">Share your feedback on their pitch</div>
-      </div>
+    <div class="row justify-between items-center q-mb-xs q-mt-xl">
+      <q-btn icon="arrow_back" flat round @click="goBack" class="" />
+      <div class="text-h5 text-weight-bold">{{ startup?.name }}</div>
+      <div class="q-px-md"></div>
+    </div>
+    <div class="text-h6 flex flex-center text-grey-7 q-mb-xl">
+      Share your feedback on their pitch
     </div>
 
     <!-- Ratings -->
-    <div class="rating-container" style="max-width: 700px; margin: 0 auto;">
-      <div
-        v-for="question in ratingQuestions"
-        :key="question.id"
-        class="rating-question q-mb-xl"
-      >
+    <div class="rating-container" style="max-width: 700px; margin: 0 auto">
+      <div v-for="question in ratingQuestions" :key="question.id" class="rating-question q-mb-xl">
         <div class="text-h6 q-mb-md">{{ question.text }}</div>
         <div class="row justify-between items-center q-mb-sm">
           <span class="text-caption text-grey-7">Needs Improvement</span>
@@ -71,13 +68,20 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useEventStore } from 'stores/event-store'
-import { db } from 'boot/firebase'
+import { db, auth } from 'boot/firebase'
 import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore'
 import { Notify } from 'quasar'
 
 const route = useRoute()
 const router = useRouter()
 const eventStore = useEventStore()
+
+const currentUser = auth.currentUser
+const user = currentUser || eventStore.currentUser
+
+// 🔹 Use eventId directly from route if available
+const eventId =
+  route.params.eventId || eventStore.currentEvent?.id || localStorage.getItem('currentEventId')
 
 const ratings = ref({})
 const comments = ref('')
@@ -89,19 +93,20 @@ const ratingQuestions = [
   { id: 'potential', text: 'Market potential and scalability of their solution?' },
   { id: 'team', text: 'Strength and experience of the founding team?' },
   { id: 'innovation', text: 'How innovative and unique is their approach?' },
-  { id: 'presentation', text: 'Quality and effectiveness of their pitch delivery?' }
+  { id: 'presentation', text: 'Quality and effectiveness of their pitch delivery?' },
 ]
 
 const isRatingValid = computed(() => {
-  return Object.values(ratings.value).some(r => r > 0)
+  return Object.values(ratings.value).some((r) => r > 0)
 })
 
 const goBack = () => router.back()
 
 const submitRating = async () => {
   if (!isRatingValid.value) return
-  const eventId = eventStore.currentEvent?.id
-  const user = eventStore.currentUser
+
+  console.log('🧩 DEBUG eventId:', eventId)
+  console.log('🧩 DEBUG user:', user)
 
   if (!eventId || !user) {
     Notify.create({ message: 'Missing event or user context', color: 'negative' })
@@ -109,6 +114,7 @@ const submitRating = async () => {
   }
 
   isSubmitting.value = true
+
   try {
     const totalScore = Object.values(ratings.value).reduce((a, b) => a + (b || 0), 0)
     const ratingData = {
@@ -120,13 +126,29 @@ const submitRating = async () => {
       ratings: ratings.value,
       totalScore,
       comments: comments.value,
-      timestamp: serverTimestamp()
+      timestamp: serverTimestamp(),
     }
 
-    const ratingDocId = `${user.uid}_${route.params.startupId}`
-    const ratingDocRef = doc(db, `events/${eventId}/ratings/${ratingDocId}`)
+    // 🔹 1. Primary detailed rating under each startup
+    const ratingDocRef = doc(
+      db,
+      `events/${eventId}/startups/${route.params.startupId}/ratings/${user.uid}`,
+    )
 
-    await setDoc(ratingDocRef, ratingData, { merge: true }) // merge enables edits
+    await setDoc(ratingDocRef, ratingData, { merge: true })
+
+    // 🔹 2. Mirror lightweight summary under /events/{eventId}/ratings/
+    const eventRatingRef = doc(
+      db,
+      `events/${eventId}/ratings/${route.params.startupId}_${user.uid}`,
+    )
+    await setDoc(eventRatingRef, {
+      startupId: route.params.startupId,
+      startupName: startup.value?.name || '',
+      userId: user.uid,
+      totalScore,
+      timestamp: serverTimestamp(),
+    })
 
     Notify.create({ message: 'Rating submitted successfully!', color: 'positive', position: 'top' })
     router.back()
@@ -138,12 +160,35 @@ const submitRating = async () => {
   }
 }
 
+if (!eventStore.currentEvent && eventId) {
+  eventStore.currentEvent = { id: eventId } // minimal stub
+}
+
+// 🔹 Fetch startup name directly from the event’s subcollection
 onMounted(async () => {
   const startupId = route.params.startupId
-  const startupDoc = await getDoc(doc(db, 'startups', startupId))
-  startup.value = startupDoc.exists()
-    ? { id: startupDoc.id, ...startupDoc.data() }
-    : { id: startupId, name: `Startup ${startupId}` }
+  const resolvedEventId = route.params.eventId || eventId
+
+  if (!resolvedEventId || !startupId) {
+    Notify.create({ message: 'Missing event or startup info', color: 'negative' })
+    router.replace('/home')
+    return
+  }
+
+  try {
+    const startupRef = doc(db, `events/${resolvedEventId}/startups/${startupId}`)
+    const startupSnap = await getDoc(startupRef)
+
+    if (startupSnap.exists()) {
+      startup.value = { id: startupSnap.id, ...startupSnap.data() }
+    } else {
+      // fallback (should rarely happen)
+      startup.value = { id: startupId, name: 'Unknown Startup' }
+    }
+  } catch (err) {
+    console.error('Error loading startup:', err)
+    startup.value = { id: startupId, name: 'Unknown Startup' }
+  }
 })
 </script>
 

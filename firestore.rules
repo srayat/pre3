@@ -12,3 +12,39 @@ match /events/{eventId}/startups/{startupId} {
   // ✅ Delete: Allow any signed-in user (relaxed for testing)
   allow delete: if isSignedIn();
 }
+
+match /events/{eventId}/startups/{startupId}/ratings/{userId} {
+  allow read: if request.auth != null;
+  allow write: if request.auth.uid == userId;
+}
+
+match /events/{eventId}/ratings/{ratingId} {
+  allow read: if request.auth != null;
+  allow write: if request.auth.uid in ratingId; // ensures user can write only their mirror
+}
+
+    // ✅ Allow everything on /events and its subcollections
+    match /events/{eventId} {
+      allow read, write: if true;
+
+      // Startups under each event
+      match /startups/{startupId} {
+        allow read, write: if true;
+      }
+
+      // Investments under each event
+      match /investments/{investmentId} {
+        allow read, write: if true;
+      }
+    }
+
+    // ✅ Allow everything on users' eventPremoneyAccounts
+    match /users/{uid}/eventPremoneyAccounts/{eventId} {
+      allow read, write: if true;
+    }
+
+    // Optional: allow reading user profiles for debugging
+    match /users/{uid} {
+      allow read, write: if true;
+    }
+

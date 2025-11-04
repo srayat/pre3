@@ -1,214 +1,255 @@
 <template>
-<q-page class="q-pa-md">
-  <!-- Post-event full-screen message -->
-  <div
-    v-if="eventStore.currentEvent?.status === 'ended'"
-    class="full-screen-message flex flex-center column text-center"
-  >
-    <div class="text-h5 text-weight-bold q-mb-sm">The event has ended.</div>
-    <div class="text-subtitle1">Results will be shortly displayed here.</div>
-  </div>
-
-  <!-- Normal content when event is active -->
-  <div v-else>
-    <!-- Existing content goes here -->
-    <div class="row justify-between items-center q-mb-md">
-      <div class="text-h5 text-weight-bold">
-        Investment Portfolio
-      </div>
-      <q-btn icon="help" round flat color="grey-6" @click="showTutorial = true">
-        <q-tooltip>Show Tutorial</q-tooltip>
-      </q-btn>
+  <q-page class="q-pa-md">
+    <!-- 🌀 Loading State -->
+    <div
+      v-if="eventStatus === 'loading'"
+      class="flex flex-center column q-mt-xl text-center"
+      style="min-height: 60vh"
+    >
+      <q-spinner size="48px" color="primary" />
+      <div class="text-subtitle1 q-mt-md text-grey-7">Loading event data...</div>
     </div>
 
-    <q-card class="q-mb-md">
-      <q-card-section>
-        <div class="row items-center justify-center">
-          <div class="text-h6 q-pr-sm">Your PreMoney Balance:</div>
-          <div class="text-h6 text-primary text-weight-bold">
-            {{ formatCurrency(userStore.user?.premoney || 0) }}
-          </div>
-        </div>
-      </q-card-section>
-    </q-card>
+    <!-- ⚠️ Error State -->
+    <div v-else-if="error" class="flex flex-center column q-mt-xl text-center">
+      <q-icon name="error" size="48px" color="negative" class="q-mb-md" />
+      <div class="text-h6 text-negative q-mb-sm">{{ error }}</div>
+      <q-btn color="primary" label="Go Home" @click="$router.push('/home')" />
+    </div>
 
-    <div class="text-h5 q-mb-md">Available Startups</div>
+    <!-- ⚪ Event ended -->
+    <div
+      v-else-if="eventStatus === 'ended'"
+      class="full-screen-message flex flex-center column text-center"
+    >
+      <div class="text-h5 text-weight-bold q-mb-sm">The event has ended.</div>
+      <div class="text-subtitle1">Results will be available soon.</div>
+    </div>
 
-    <div class="col q-col-gutter-md">
+    <!-- 🟢 Event live -->
+    <div v-else-if="eventStatus === 'live'">
+      <div class="row justify-between items-center q-mb-md q-mt-xl">
+        <q-btn icon="arrow_back" flat round @click="$router.push('/home')" />
+        <div class="text-h5 text-weight-bold">Investment Portfolio</div>
+        <q-btn icon="help" round flat color="grey-6" @click="showTutorial = true">
+          <q-tooltip>Show Tutorial</q-tooltip>
+        </q-btn>
+      </div>
+
+      <!-- 💰 PreMoney Balance -->
       <div
-        v-for="startup in startups"
-        :key="startup.id"
-        class="col-12 col-sm-6 col-md-4"
+        class="bg-primary text-white q-pa-md q-mb-md rounded-borders flex justify-between items-center"
       >
-        <startup-card
-          :startup="startup"
-          @invest="handleInvest"
-        />
+        <div class="text-subtitle1">Your PreMoney Balance</div>
+        <div class="text-h6 text-bold">
+          {{ remainingBalance.toFixed(0) }} / {{ totalAllocated.toFixed(0) }} PM
+        </div>
       </div>
+
+      <!-- 🧠 Loading startups -->
+      <div v-if="loading" class="flex flex-center column q-my-xl text-grey-7">
+        <q-spinner size="32px" color="primary" />
+        <div class="q-mt-sm">Loading startups...</div>
+      </div>
+
+      <div v-else-if="startups.length === 0" class="text-center q-my-xl text-grey-7">
+        <q-icon name="corporate_fare" size="48px" color="grey-5" class="q-mb-md" />
+        <div class="text-h6">No startups available yet</div>
+        <div class="text-body2 q-mt-sm">
+          Check back later when startups are added to this event.
+        </div>
+      </div>
+
+      <div v-else class="col q-col-gutter-md">
+        <div v-for="startup in startups" :key="startup.id" class="col-12">
+          <startup-card
+            :startup="startup"
+            :invested="investments[startup.id] || 0"
+            :disabled="!isLive"
+            :event-id="eventId"
+            @update-investment="(amount) => updateInvestment(startup.id, amount, isLive)"
+          />
+        </div>
+      </div>
+
+      <!-- Tutorial dialog -->
+      <q-dialog v-model="showTutorial" persistent>
+        <q-card style="width: 700px; max-width: 80vw">
+          <q-card-section class="row items-center">
+            <div class="text-h6">Event Tutorial</div>
+            <q-space />
+            <q-btn icon="close" flat round dense v-close-popup />
+          </q-card-section>
+
+          <q-card-section class="q-pt-none">
+            <event-onboarding :embedded="true" />
+          </q-card-section>
+
+          <q-card-actions align="right">
+            <q-btn label="Close" color="primary" v-close-popup />
+          </q-card-actions>
+        </q-card>
+      </q-dialog>
     </div>
-
-    <!-- Tutorial dialog -->
-    <q-dialog v-model="showTutorial" persistent>
-      <q-card style="width: 700px; max-width: 80vw;">
-        <q-card-section class="row items-center">
-          <div class="text-h6">Event Tutorial</div>
-          <q-space />
-          <q-btn icon="close" flat round dense v-close-popup />
-        </q-card-section>
-
-        <q-card-section class="q-pt-none">
-          <event-onboarding :embedded="true" />
-        </q-card-section>
-
-        <q-card-actions align="right">
-          <q-btn label="Close" color="primary" v-close-popup />
-        </q-card-actions>
-      </q-card>
-    </q-dialog>
-  </div>
-</q-page>
-
+  </q-page>
 </template>
 
-<script>
-import { ref, onMounted, onUnmounted, watch } from 'vue'
-import { collection, onSnapshot, getDocs, doc, getDoc } from 'firebase/firestore'
+<script setup>
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { useQuasar } from 'quasar'
+import { doc, getDoc, collection, onSnapshot, getDocs } from 'firebase/firestore'
 import { db } from 'boot/firebase'
-import { useEventStore } from 'stores/event-store'
-import { useUserStore } from 'stores/user-store'
-import { useRouter } from 'vue-router'
 import StartupCard from 'components/StartupCard.vue'
 import EventOnboarding from 'components/EventOnboarding.vue'
+import { useInvestments } from 'src/composables/useInvestments'
 
-export default {
-  name: 'InvestmentPage',
-  components: { StartupCard, EventOnboarding },
+const route = useRoute()
+const router = useRouter()
+const $q = useQuasar()
 
-  setup() {
-    // ======== STATE ========
-    const showTutorial = ref(false)
-    const startups = ref([])
-    const loading = ref(false)
-    const error = ref('')
-    const unsubscribe = ref(null)
+const eventId = computed(() => route.params.eventId)
 
-    const eventStore = useEventStore()
-    const userStore = useUserStore()
-    const router = useRouter()
+const showTutorial = ref(false)
+const startups = ref([])
+const eventStatus = ref('loading')
+const eventData = ref(null)
+const loading = ref(false)
+const error = ref('')
+const unsubscribe = ref(null)
 
-    // ======== HELPERS ========
-    const formatCurrency = (amount) => '$ ' + amount.toLocaleString('en-US')
+// 🔹 Load investment composable (pass eventId directly)
+const { totalAllocated, investments, remainingBalance, updateInvestment } = useInvestments(eventId)
 
-    const handleInvest = (startupId, amount) => {
-      console.log(`Investing ${amount} in startup ${startupId}`)
-      // TODO: Add investment logic here
+// 🔹 Event status check
+const isLive = computed(() => eventData.value?.status === 'live')
+
+// 🔹 Fetch event details
+async function loadEvent() {
+  if (!eventId.value) {
+    router.push('/home')
+    return
+  }
+
+  try {
+    eventStatus.value = 'loading'
+    error.value = ''
+
+    const eventRef = doc(db, 'events', eventId.value)
+    const snap = await getDoc(eventRef)
+
+    if (!snap.exists()) {
+      error.value = 'Event not found'
+      $q.notify({
+        type: 'negative',
+        message: 'No event found for this code.',
+        timeout: 3000,
+      })
+      setTimeout(() => router.replace('/home'), 2000)
+      return
     }
 
-    // ======== MAIN FUNCTION ========
-    const loadStartups = async () => {
-      const eventId = eventStore.currentEvent?.id
-      const eventStatus = eventStore.currentEvent?.status || 'setup'
-      if (!eventId) {
-        console.warn('No active event found.')
-        return
-      }
+    const data = snap.data()
+    eventData.value = { id: eventId.value, ...data }
+    eventStatus.value = data.status || 'setup'
 
-      loading.value = true
-      const startupsRef = collection(db, 'events', eventId, 'startups')
+    // Store in localStorage (fixed - store the value, not the ref)
+    localStorage.setItem('currentEventId', eventId.value)
 
-      // Helper: merge with root /startups info
-      const enrichStartup = async (startupDoc) => {
-        const startupId = startupDoc.id
-        const eventData = startupDoc.data()
-        let rootData = {}
-        try {
-          const rootSnap = await getDoc(doc(db, 'startups', startupId))
-          if (rootSnap.exists()) rootData = rootSnap.data()
-        } catch (e) {
-          console.error('Error reading root startup', startupId, e)
-        }
-
-        return {
-          id: startupId,
-          name: eventData.name || rootData.name || 'Untitled Startup',
-          description: eventData.description || rootData.description || '',
-          email: rootData.email || '',
-        }
-      }
-
-      // ---- Real-time updates for live events ----
-      if (eventStatus === 'live') {
-        console.log('Event is live — using onSnapshot for real-time updates.')
-
-        unsubscribe.value = onSnapshot(
-          startupsRef,
-          async (snapshot) => {
-            const promises = snapshot.docs.map((doc) => enrichStartup(doc))
-            startups.value = await Promise.all(promises)
-            loading.value = false
-          },
-          (err) => {
-            console.error('Error with onSnapshot:', err)
-            error.value = 'Failed to load startups'
-            loading.value = false
-          }
-        )
-      }
-
-      // ---- One-time fetch for ended/setup events ----
-      else {
-        console.log('Event is not live — fetching startups once.')
-        try {
-          const snapshot = await getDocs(startupsRef)
-          const promises = snapshot.docs.map((doc) => enrichStartup(doc))
-          startups.value = await Promise.all(promises)
-        } catch (err) {
-          console.error('Error fetching startups:', err)
-          error.value = 'Failed to load startups'
-        } finally {
-          loading.value = false
-        }
-      }
+    // 🚦 Handle status
+    if (data.status === 'setup') {
+      error.value = 'Event is not live yet'
+      $q.notify({
+        type: 'warning',
+        message: 'This event is still in setup. Check back later.',
+        timeout: 3000,
+      })
+      setTimeout(() => router.replace('/home'), 2000)
+      return
     }
 
-    // ======== LIFECYCLE ========
-    onMounted(() => {
-      if (!eventStore.currentEvent) {
-        router.push('/event-code')
-      } else {
-        loadStartups()
-      }
+    if (data.status === 'ended') {
+      console.log('Event ended — showing static data')
+      await loadStartups(eventId.value, 'ended')
+      return
+    }
+
+    if (data.status === 'live') {
+      await loadStartups(eventId.value, 'live')
+    }
+  } catch (err) {
+    console.error('❌ Error loading event:', err)
+    error.value = 'Failed to load event data'
+    $q.notify({
+      type: 'negative',
+      message: 'Something went wrong while loading the event.',
+      timeout: 3000,
     })
-
-  // 🔄 WATCHER: Automatically switch from real-time → static after event ends
-    watch(
-    () => eventStore.currentEvent?.status,
-    (newStatus) => {
-        if (newStatus === 'ended' && unsubscribe.value) {
-        console.log('Event ended — stopping live updates and refetching static data.')
-        unsubscribe.value()
-        loadStartups()
-        }
-    }
-    )
-
-
-
-    onUnmounted(() => {
-      if (unsubscribe.value) unsubscribe.value()
-    })
-
-    // ======== RETURN TO TEMPLATE ========
-    return {
-      showTutorial,
-      startups,
-      loading,
-      error,
-      eventStore,
-      userStore,
-      formatCurrency,
-      handleInvest,
-    }
-  },
+  }
 }
+
+// 🔹 Load startups from Firestore
+async function loadStartups(eventIdParam, status) {
+  const startupsRef = collection(db, 'events', eventIdParam, 'startups')
+  loading.value = true
+
+  if (status === 'live') {
+    console.log('Event is live — using onSnapshot for startups')
+    unsubscribe.value = onSnapshot(
+      startupsRef,
+      (snapshot) => {
+        startups.value = snapshot.docs.map((d) => ({
+          id: d.id,
+          ...d.data(),
+        }))
+        loading.value = false
+      },
+      (err) => {
+        console.error('❌ Error with onSnapshot:', err)
+        error.value = 'Failed to load startups'
+        loading.value = false
+      },
+    )
+  } else {
+    console.log('Event not live — one-time fetch')
+    try {
+      const snap = await getDocs(startupsRef)
+      startups.value = snap.docs.map((d) => ({
+        id: d.id,
+        ...d.data(),
+      }))
+    } catch (err) {
+      console.error('❌ Error fetching startups:', err)
+      error.value = 'Failed to load startups'
+    } finally {
+      loading.value = false
+    }
+  }
+}
+
+// 🔄 Lifecycle
+onMounted(loadEvent)
+
+onUnmounted(() => {
+  if (unsubscribe.value) {
+    unsubscribe.value()
+    unsubscribe.value = null
+  }
+})
+
+// 🔁 Watch event status
+watch(eventStatus, (newVal) => {
+  if (newVal === 'ended' && unsubscribe.value) {
+    unsubscribe.value()
+    unsubscribe.value = null
+    console.log('Stopped live updates after event ended')
+  }
+})
 </script>
+
+<style scoped>
+.full-screen-message {
+  height: 80vh;
+  color: #555;
+}
+</style>

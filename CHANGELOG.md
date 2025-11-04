@@ -1,3 +1,9 @@
+## v0.1.2
+
+- Audience investing is working now
+- Balance, Validation (front-end) on Investment Page working
+- Automated Account creation upon joining event not yet implemented
+
 ## v0.1.1
 
 - Some major changes

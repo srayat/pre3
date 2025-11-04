@@ -75,7 +75,8 @@
         @close="handleCloseSection"
       />
     </div>
-    <!-- Show Go Live / End Event / Ended cards ONLY on main Manage Event screen -->
+
+    <!-- Status Cards Wrapper -->
     <div v-if="!activeSection">
       <!-- 1️⃣ SETUP -->
       <q-card v-if="status === 'setup'" class="q-pa-md q-mt-lg">
@@ -95,45 +96,45 @@
           />
         </div>
       </q-card>
+
+      <!-- 2️⃣ LIVE -->
+      <q-card
+        v-else-if="status === 'live'"
+        class="q-mt-xl q-pt-lg bg-grey-2 text-positive text-center"
+        flat
+        style="border-color: #2e7d32; border-width: 2px"
+      >
+        <div class="text-h6 text-weight-bold">✅ Event is now Live</div>
+        <div class="text-subtitle1 text-grey-8 q-mb-md">
+          Attendees can join and invest PreMoney in startups.
+        </div>
+
+        <!-- 🔴 End Event Button (still visually below but logically inside same block) -->
+        <div class="q-mt-md flex justify-center">
+          <q-btn
+            color="negative"
+            label="End Event"
+            icon="stop_circle"
+            unelevated
+            :loading="endingEvent"
+            @click="confirmEndEvent"
+            class="q-px-lg full-width text-h6"
+          />
+        </div>
+      </q-card>
+
+      <!-- 3️⃣ ENDED -->
+      <q-card
+        v-else-if="status === 'ended'"
+        class="q-pa-xl q-mt-lg bg-grey-5 text-white text-center"
+        flat
+        bordered
+        style="border-color: #616161; border-width: 2px"
+      >
+        <div class="text-h6 text-weight-bold q-mb-md">⚪ Event has Ended</div>
+        <div class="text-subtitle2">This event is no longer active for participation.</div>
+      </q-card>
     </div>
-
-    <!-- 2️⃣ LIVE -->
-    <q-card
-      v-else-if="status === 'live'"
-      class="q-mt-lg q-pa-sm bg-transparent text-positive text-center"
-      flat
-      bordered
-      style="border-color: #2e7d32; border-width: 2px"
-    >
-      <div class="text-h6 text-weight-bold">Event is now Live</div>
-      <div class="text-subtitle1">Attendees can now join and start investing in startups.</div>
-    </q-card>
-
-    <!-- 🔴 End Event Button (outside the green card) -->
-    <div class="q-mt-md flex justify-center">
-      <q-btn
-        v-if="status === 'live'"
-        color="negative"
-        label="End Event"
-        icon="stop_circle"
-        unelevated
-        :loading="endingEvent"
-        @click="confirmEndEvent"
-        class="q-pa-lg full-width text-h6"
-      />
-    </div>
-
-    <!-- 3️⃣ ENDED -->
-    <q-card
-      v-if="status === 'ended'"
-      class="q-pa-xl q-mt-lg bg-grey-5 text-white text-center"
-      flat
-      bordered
-      style="border-color: #616161; border-width: 2px"
-    >
-      <div class="text-h6 text-weight-bold q-mb-md">⚪ Event has Ended</div>
-      <div class="text-subtitle2">This event is no longer active for participation.</div>
-    </q-card>
   </q-page>
 </template>
 
