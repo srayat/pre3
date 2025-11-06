@@ -32,3 +32,9 @@ yarn-error.log*
 # local .env files
 .env
 .env.local*
+
+# If not there, add them:
+echo ".env.development" >> .gitignore
+echo ".env.production" >> .gitignore
+echo ".env.local" >> .gitignore
+echo ".env*.local" >> .gitignore
