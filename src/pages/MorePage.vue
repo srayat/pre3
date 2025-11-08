@@ -97,7 +97,7 @@ async function handleAction(action) {
   }
 
   if (action.key === 'edit-profile') {
-    await router.push('/profile-onboarding')
+    await router.push('/user-profile')
     return
   }
 

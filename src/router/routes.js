@@ -98,6 +98,11 @@ const routes = [
         component: () => import('pages/AddStartupPage.vue'),
         meta: { requiresAuth: true, hideBottomNav: true },
       },
+      {
+        path: 'user-profile',
+        component: () => import('pages/UserProfilePage.vue'),
+        meta: { requiresAuth: true, hideBottomNav: true },
+      },
     ],
   },
 

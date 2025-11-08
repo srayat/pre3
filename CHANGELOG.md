@@ -1,3 +1,13 @@
+# v0.1.5
+
+- Added back navigation arrow on User Profile page
+
+# v0.1.4
+
+- Added User Profile
+- Enabled Edit Profile
+- User profile picture working
+
 # v0.1.3
 
 - Removed App Header on landing page

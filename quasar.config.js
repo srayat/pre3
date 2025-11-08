@@ -46,6 +46,11 @@ export default defineConfig((/* ctx */) => {
         node: 'node20',
       },
 
+      htmlVariables: {
+        productName: 'Pre App',
+        productDescription: 'PreMoney for Gamified Startup Investing.',
+      },
+
       vueRouterMode: 'history', // available values: 'hash', 'history'
       // vueRouterBase,
       // vueDevtools,
