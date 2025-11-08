@@ -3,8 +3,14 @@
 
 import { defineConfig } from '#q-app/wrappers'
 import { config as loadDotenv } from 'dotenv'
+import { fileURLToPath } from 'node:url'
+import path from 'node:path'
 
-loadDotenv()
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
+
+// Load the appropriate .env file based on NODE_ENV or QUASAR_MODE
+const mode = process.env.QUASAR_ENV || process.env.NODE_ENV || 'development'
+loadDotenv({ path: path.resolve(__dirname, `.env.${mode}.local`) })
 
 export default defineConfig((/* ctx */) => {
   return {
@@ -38,21 +44,6 @@ export default defineConfig((/* ctx */) => {
       target: {
         browser: ['es2022', 'firefox115', 'chrome115', 'safari14'],
         node: 'node20',
-      },
-
-      env: {
-        FIREBASE_API_KEY: process.env.FIREBASE_API_KEY,
-        FIREBASE_AUTH_DOMAIN: process.env.FIREBASE_AUTH_DOMAIN,
-        FIREBASE_PROJECT_ID: process.env.FIREBASE_PROJECT_ID,
-        FIREBASE_STORAGE_BUCKET: process.env.FIREBASE_STORAGE_BUCKET,
-        FIREBASE_MESSAGING_SENDER_ID: process.env.FIREBASE_MESSAGING_SENDER_ID,
-        FIREBASE_APP_ID: process.env.FIREBASE_APP_ID,
-        FIREBASE_MEASUREMENT_ID: process.env.FIREBASE_MEASUREMENT_ID,
-        FIREBASE_USE_AUTH_EMULATOR: process.env.FIREBASE_USE_AUTH_EMULATOR,
-        FIREBASE_AUTH_EMULATOR_HOST: process.env.FIREBASE_AUTH_EMULATOR_HOST,
-        VITE_USE_FUNCTIONS_EMULATOR: process.env.VITE_USE_FUNCTIONS_EMULATOR,
-        VITE_FUNCTIONS_EMULATOR_HOST: process.env.VITE_FUNCTIONS_EMULATOR_HOST,
-        VITE_FUNCTIONS_EMULATOR_PORT: process.env.VITE_FUNCTIONS_EMULATOR_PORT,
       },
 
       vueRouterMode: 'history', // available values: 'hash', 'history'

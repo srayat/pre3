@@ -27,6 +27,7 @@ import logoUrl from 'assets/logo_small_white.png'
 const route = useRoute()
 
 const showBottomNav = computed(() => route.meta?.hideBottomNav !== true)
+const showHeader = computed(() => route.meta?.hideHeader !== true)
 </script>
 
 <style scoped>
@@ -115,8 +116,8 @@ const showBottomNav = computed(() => route.meta?.hideBottomNav !== true)
   }
 
   .app-shell__pages > .q-page {
-    padding: 0 env(safe-area-inset-left, 0) calc(96px + env(safe-area-inset-bottom, 0))
-      env(safe-area-inset-right, 0);
+    padding: 0 calc(16px + env(safe-area-inset-left, 0)) calc(96px + env(safe-area-inset-bottom, 0))
+      calc(16px + env(safe-area-inset-right, 0));
   }
 }
 </style>

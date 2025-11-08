@@ -93,6 +93,11 @@ const routes = [
         component: () => import('pages/MorePage.vue'),
         meta: { requiresAuth: true },
       },
+      {
+        path: 'add-startup',
+        component: () => import('pages/AddStartupPage.vue'),
+        meta: { requiresAuth: true, hideBottomNav: true },
+      },
     ],
   },
 

@@ -1,9 +1,9 @@
-"use strict"
+'use strict'
 
-const {auth} = require("firebase-functions/v1")
-const {getFirestore, FieldValue} = require("firebase-admin/firestore")
-const {getApps, initializeApp} = require("firebase-admin/app")
-const {normalizeEmail} = require("./utils/normalizeEmail")
+const { auth } = require('firebase-functions/v1')
+const { getFirestore, FieldValue } = require('firebase-admin/firestore')
+const { getApps, initializeApp } = require('firebase-admin/app')
+const { normalizeEmail } = require('./utils/normalizeEmail')
 
 if (!getApps().length) {
   initializeApp()
@@ -12,55 +12,91 @@ if (!getApps().length) {
 const db = getFirestore()
 
 /**
- * Links a newly created Firebase Auth user to any reserved person record
- * that matches their email address, and marks relevant event roles as claimed.
+ * Creates a user document for newly created Firebase Auth users,
+ * and links them to any reserved person record that matches their email.
  */
 exports.linkUserToPerson = auth.user().onCreate(async (user) => {
-  if (!user.email) {
+  const uid = user.uid
+  const email = user.email
+
+  // ✅ ALWAYS create a user document first
+  const userRef = db.doc(`users/${uid}`)
+
+  try {
+    await userRef.set({
+      email: email || null,
+      createdAt: FieldValue.serverTimestamp(),
+      profileComplete: false,
+      // firstName and lastName will be added later via profile onboarding
+    })
+  } catch (error) {
+    console.error('Error creating user document:', error)
+    return // Exit if we can't create the user doc
+  }
+
+  // If no email, stop here (user doc created but no linking possible)
+  if (!email) {
     return
   }
 
-  const email = normalizeEmail(user.email)
-  const emailDoc = await db.doc(`emailIndex/${email}`).get()
+  // ✅ Check if email exists in emailIndex for pre-invited users
+  const normalizedEmail = normalizeEmail(email)
+  const emailDoc = await db.doc(`emailIndex/${normalizedEmail}`).get()
 
   if (!emailDoc.exists) {
+    // No pre-existing personId, so we're done
     return
   }
 
-  const {personId} = emailDoc.data()
+  // ✅ Link to personId if found
+  const { personId } = emailDoc.data()
   const personRef = db.doc(`people/${personId}`)
 
-  await personRef.update({
-    linkedUid: user.uid,
-    status: "registered",
-    updatedAt: FieldValue.serverTimestamp(),
-  })
-
-  const batch = db.batch()
-
-  const startupMatches = await db.collectionGroup("startups")
-      .where("personId", "==", personId)
-      .get()
-
-  startupMatches.forEach((docSnap) => {
-    batch.update(docSnap.ref, {
-      claimedByUid: user.uid,
-      status: "claimed",
+  try {
+    // Update the person record
+    await personRef.update({
+      linkedUid: uid,
+      status: 'registered',
       updatedAt: FieldValue.serverTimestamp(),
     })
-  })
 
-  const judgeMatches = await db.collectionGroup("judges")
-      .where("personId", "==", personId)
-      .get()
-
-  judgeMatches.forEach((docSnap) => {
-    batch.update(docSnap.ref, {
-      claimedByUid: user.uid,
-      status: "claimed",
+    // Update user document with personId
+    await userRef.update({
+      personId: personId,
       updatedAt: FieldValue.serverTimestamp(),
     })
-  })
 
-  await batch.commit()
+    // ✅ Claim all startup and judge roles linked to this personId
+    const batch = db.batch()
+
+    const startupMatches = await db
+      .collectionGroup('startups')
+      .where('personId', '==', personId)
+      .get()
+
+    startupMatches.forEach((docSnap) => {
+      batch.update(docSnap.ref, {
+        claimedByUid: uid,
+        status: 'claimed',
+        updatedAt: FieldValue.serverTimestamp(),
+      })
+    })
+
+    const judgeMatches = await db.collectionGroup('judges').where('personId', '==', personId).get()
+
+    judgeMatches.forEach((docSnap) => {
+      batch.update(docSnap.ref, {
+        claimedByUid: uid,
+        status: 'claimed',
+        updatedAt: FieldValue.serverTimestamp(),
+      })
+    })
+
+    await batch.commit()
+
+    console.log(`Successfully linked user ${uid} to person ${personId}`)
+  } catch (error) {
+    console.error('Error linking user to person:', error)
+    // User doc still exists even if linking fails
+  }
 })

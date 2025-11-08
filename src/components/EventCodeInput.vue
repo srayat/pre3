@@ -1,45 +1,36 @@
 <template>
   <q-page class="row items-center justify-center q-pa-md">
-    <!-- 
-      Main container with centered layout
-      Uses Quasar's flexbox utilities for perfect centering
-    -->
     <div class="column items-center" style="max-width: 400px; width: 100%">
-      
       <!-- Header Section -->
       <div class="text-center q-mb-xl">
-        <!-- Visual icon for better UX -->
         <q-icon name="qr_code_scanner" size="64px" color="primary" class="q-mb-md" />
         <div class="text-h4 text-weight-bold">Enter Event Code</div>
         <div class="text-subtitle1 text-grey-7 q-mt-sm">
-          Enter the 4-digit code provided by your event organizer
+          Enter the 5-digit code provided by your event organizer
         </div>
       </div>
 
       <!-- Code Input Form -->
       <q-form @submit="handleSubmit" class="full-width">
         <div class="column items-center q-gutter-y-md">
-          
-          <!-- 
-            Code Input Field
-            Features:
-            - mask="####" ensures exactly 4 digits
-            - fill-mask shows placeholder underscores
-            - unmasked-value gives raw value without mask characters
-            - letter-spacing for better digit separation
-          -->
-          <q-input
-            v-model="code"
-            label="4-Digit Code"
-            mask="####"
-            fill-mask
-            unmasked-value
-            :rules="[val => val.length === 4 || 'Please enter 4 digits']"
-            input-class="text-h5 text-center letter-spacing-4"
-            class="full-width"
-            :disable="isLoading"
-            @keyup.enter="handleSubmit"
-          />
+          <!-- 5-Digit PIN Style Input -->
+          <div class="pin-input-container">
+            <input
+              v-for="(digit, index) in 5"
+              :key="index"
+              :ref="(el) => (inputRefs[index] = el)"
+              v-model="codeDigits[index]"
+              type="text"
+              inputmode="numeric"
+              maxlength="1"
+              class="pin-box"
+              :class="{ 'has-value': codeDigits[index] }"
+              @input="handleInput(index, $event)"
+              @keydown="handleKeydown(index, $event)"
+              @paste="handlePaste"
+              :disabled="isLoading"
+            />
+          </div>
 
           <!-- Error Display -->
           <div v-if="error" class="text-negative text-caption text-center">
@@ -53,6 +44,7 @@
             color="primary"
             size="lg"
             :loading="isLoading"
+            :disable="code.length !== 5"
             class="full-width q-mt-lg"
           >
             <template v-slot:loading>
@@ -63,81 +55,153 @@
         </div>
       </q-form>
 
-      <!-- Help Text for Users -->
+      <!-- Help Text -->
       <div class="text-body1 text-grey-8 q-mt-xl text-center">
-        <div>Don't have a code? 777</div>
-        <div>Contact your event organizer to get your unique 4-digit event code.</div>
+        <div>Don't have a code?</div>
+        <div>Contact your event organizer to get your unique 5-digit event code.</div>
       </div>
     </div>
   </q-page>
 </template>
 
-<script>
-import { ref } from 'vue'
+<script setup>
+import { ref, computed, onMounted } from 'vue'
 import { useEventStore } from 'stores/event-store'
 import { useRouter } from 'vue-router'
 
+const eventStore = useEventStore()
+const router = useRouter()
+
+// Array to hold each digit
+const codeDigits = ref(['', '', '', '', ''])
+const inputRefs = ref([])
+
+// Computed full code
+const code = computed(() => codeDigits.value.join(''))
+
+// Loading and error states
+const isLoading = computed(() => eventStore.isLoading)
+const error = computed(() => eventStore.error)
+
 /**
- * EventCodeInput Component
- * 
- * Purpose:
- * - Accept 4-digit event code from user
- * - Validate code against Firestore
- * - Route user to appropriate next page (onboarding or investment)
- * 
- * @component
- * @example <EventCodeInput />
+ * Handle input in a single box
  */
-export default {
-  name: 'EventCodeInput',
-  
-  setup() {
-    // ========== REACTIVE STATE ==========
-    const code = ref('') // Holds the 4-digit code input
-    const eventStore = useEventStore() // Access event store
-    const router = useRouter() // Vue Router for navigation
+const handleInput = (index, event) => {
+  const value = event.target.value
 
-    // ========== METHODS ==========
-    
-    /**
-     * Handles form submission
-     * 1. Validates code with event store
-     * 2. Routes to onboarding (first time) or investment page (returning user)
-     */
-    const handleSubmit = async () => {
-      // Validate code and check event status
-      const isValid = await eventStore.validateEventCode(code.value)
-      
-      if (isValid) {
-        // Route based on onboarding completion status
-        if (eventStore.hasCompletedOnboarding) {
-          // Returning user - go directly to investment page
-          router.push('/investment')
-        } else {
-          // First-time user - show onboarding flow
-          router.push('/onboarding')
-        }
-      }
-    }
+  // Only allow digits
+  if (!/^\d*$/.test(value)) {
+    codeDigits.value[index] = ''
+    return
+  }
 
-    // ========== TEMPLATE EXPOSURE ==========
-    return {
-      code,
-      isLoading: eventStore.isLoading, // Proxy loading state from store
-      error: eventStore.error, // Proxy error state from store
-      handleSubmit
+  // Update the digit
+  codeDigits.value[index] = value
+
+  // Auto-focus next box if digit entered
+  if (value && index < 4) {
+    inputRefs.value[index + 1]?.focus()
+  }
+}
+
+/**
+ * Handle backspace and arrow keys
+ */
+const handleKeydown = (index, event) => {
+  if (event.key === 'Backspace' && !codeDigits.value[index] && index > 0) {
+    // Move to previous box on backspace if current is empty
+    inputRefs.value[index - 1]?.focus()
+  } else if (event.key === 'ArrowLeft' && index > 0) {
+    inputRefs.value[index - 1]?.focus()
+  } else if (event.key === 'ArrowRight' && index < 4) {
+    inputRefs.value[index + 1]?.focus()
+  }
+}
+
+/**
+ * Handle paste event
+ */
+const handlePaste = (event) => {
+  event.preventDefault()
+  const pastedData = event.clipboardData.getData('text').trim()
+
+  // Only process if it's 5 digits
+  if (/^\d{5}$/.test(pastedData)) {
+    codeDigits.value = pastedData.split('')
+    inputRefs.value[4]?.focus()
+  }
+}
+
+/**
+ * Handle form submission
+ */
+const handleSubmit = async () => {
+  if (code.value.length !== 5) return
+
+  const isValid = await eventStore.validateEventCode(code.value)
+
+  if (isValid) {
+    if (eventStore.hasCompletedOnboarding) {
+      router.push('/investment')
+    } else {
+      router.push('/profile-onboarding')
     }
   }
 }
+
+// Auto-focus first input on mount
+onMounted(() => {
+  inputRefs.value[0]?.focus()
+})
 </script>
 
 <style scoped>
-/* 
-  Enhanced digit spacing for better code readability
-  Makes 4-digit codes easier to read and verify
-*/
-.letter-spacing-4 {
-  letter-spacing: 0.5em;
-  padding-left: 0.5em;
+.pin-input-container {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin: 20px 0;
+}
+
+.pin-box {
+  width: 56px;
+  height: 64px;
+  font-size: 28px;
+  font-weight: 600;
+  text-align: center;
+  border: 2px solid #e0e0e0;
+  border-radius: 12px;
+  background: #ffffff;
+  color: #1976d2;
+  transition: all 0.2s ease;
+  outline: none;
+  caret-color: #1976d2;
+}
+
+.pin-box:focus {
+  border-color: #1976d2;
+  box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.1);
+}
+
+.pin-box.has-value {
+  border-color: #1976d2;
+  background: #f5f9ff;
+}
+
+.pin-box:disabled {
+  background: #f5f5f5;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Remove number input spinners */
+.pin-box::-webkit-outer-spin-button,
+.pin-box::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.pin-box[type='number'] {
+  -moz-appearance: textfield;
 }
 </style>

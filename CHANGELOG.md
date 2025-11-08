@@ -1,3 +1,13 @@
+# v0.1.3
+
+- Removed App Header on landing page
+- Added Logo to Center of Landing Page
+- Removed the hash in url
+- On mobile, added horisontal spacing
+- Rules issue preventing My Events
+- Cloud functions for New Account. Sign In, profile Onboarding
+- Not tested – Linked Account – Founder Invite – Judge Invite has been implemented in the code but not tested.
+
 ## v0.1.2
 
 - Audience investing is working now

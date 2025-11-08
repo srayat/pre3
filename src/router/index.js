@@ -1,14 +1,11 @@
 import { defineRouter } from '#q-app/wrappers'
-import {
-  createRouter,
-  createMemoryHistory,
-  createWebHistory,
-  createWebHashHistory,
-} from 'vue-router'
+import { createRouter, createMemoryHistory, createWebHistory } from 'vue-router'
 import routes from './routes'
 import { auth } from 'boot/firebase'
 import { onAuthStateChanged } from 'firebase/auth'
 import { useEventStore } from 'stores/event-store'
+import { getDoc, doc } from 'firebase/firestore'
+import { db } from 'boot/firebase'
 
 // ✅ Add auth ready promise
 let authReady = false
@@ -21,11 +18,7 @@ const authReadyPromise = new Promise((resolve) => {
 })
 
 export default defineRouter(function (/* { store, ssrContext } */) {
-  const createHistory = process.env.SERVER
-    ? createMemoryHistory
-    : process.env.VUE_ROUTER_MODE === 'history'
-      ? createWebHistory
-      : createWebHashHistory
+  const createHistory = process.env.SERVER ? createMemoryHistory : createWebHistory
 
   const Router = createRouter({
     scrollBehavior: () => ({ left: 0, top: 0 }),
@@ -64,6 +57,18 @@ export default defineRouter(function (/* { store, ssrContext } */) {
     const user = auth.currentUser
 
     if (user) {
+      // Check if profile is complete (skip for onboarding pages)
+      if (to.path !== '/profile-onboarding' && to.path !== '/user-onboarding') {
+        const userDoc = await getDoc(doc(db, 'users', user.uid))
+        if (userDoc.exists()) {
+          const userData = userDoc.data()
+          if (!userData.profileComplete && !userData.firstName) {
+            next('/profile-onboarding')
+            return
+          }
+        }
+      }
+
       next()
       return
     }

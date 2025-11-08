@@ -1,10 +1,33 @@
 {
   "projects": {
-    "default": "pre3-36e57"
+    "default": "pre3-36e57",
+    "prod": "pre3-36e57",
+    "dev": "pre3-dev"
   },
-  "targets": {},
+  "targets": {
+    "pre3-dev": {
+      "hosting": {
+        "dev": [
+          "pre3-dev"
+        ],
+        "prod": [
+          "pre3-36e57"
+        ]
+      }
+    },
+    "pre3-36e57": {
+      "hosting": {
+        "prod": [
+          "pre3-36e57"
+        ]
+      }
+    }
+  },
   "etags": {
     "pre3-36e57": {
+      "extensionInstances": {}
+    },
+    "pre3-dev": {
       "extensionInstances": {}
     }
   }

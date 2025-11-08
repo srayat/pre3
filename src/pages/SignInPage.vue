@@ -25,12 +25,16 @@
           class="q-py-sm"
           :label="buttonLabel"
           :loading="loading"
-          unelevated 
+          unelevated
           no-caps
         />
       </q-form>
 
-      <q-banner v-if="state.awaitingEmailForLink" rounded class="bg-grey-2 text-grey-8 text-body1 q-mt-md">
+      <q-banner
+        v-if="state.awaitingEmailForLink"
+        rounded
+        class="bg-grey-2 text-grey-8 text-body1 q-mt-md"
+      >
         Enter the same email address you used to request the sign-in link, then select
         <span class="text-weight-medium">Complete Sign-In</span>.
       </q-banner>
@@ -42,11 +46,7 @@
 import { computed, onMounted, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useQuasar } from 'quasar'
-import {
-  isSignInWithEmailLink,
-  sendSignInLinkToEmail,
-  signInWithEmailLink,
-} from 'firebase/auth'
+import { isSignInWithEmailLink, sendSignInLinkToEmail, signInWithEmailLink } from 'firebase/auth'
 import { doc, getDoc } from 'firebase/firestore'
 import { auth, db } from 'boot/firebase'
 
@@ -68,11 +68,11 @@ const emailRules = [(val) => (!!val && val.includes('@')) || 'Enter a valid emai
 
 const loading = computed(() => state.sending || state.completing)
 const buttonLabel = computed(() =>
-  state.mode === 'request' ? 'Send Sign-In Link' : 'Complete Sign-In'
+  state.mode === 'request' ? 'Send Sign-In Link' : 'Complete Sign-In',
 )
 
 const cardTitle = computed(() =>
-  state.mode === 'request' ? 'Passwordless Sign-In' : 'Finish Signing In'
+  state.mode === 'request' ? 'Passwordless Sign-In' : 'Finish Signing In',
 )
 
 const cardMessage = computed(() => {
@@ -176,7 +176,7 @@ async function completeSignIn() {
         ? redirectParam
         : userDocSnap.exists()
           ? '/home'
-          : '/onboarding'
+          : '/profile-onboarding'
 
     await router.push(target)
   } catch (error) {

@@ -96,6 +96,7 @@ async function handleSubmit() {
       firstName: trimmedFirst,
       lastName: trimmedLast,
       email: auth.currentUser.email || '',
+      profileComplete: true,
       updatedAt: serverTimestamp(),
     }
 

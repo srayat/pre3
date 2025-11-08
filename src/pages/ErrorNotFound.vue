@@ -10,7 +10,7 @@
         color="white"
         text-color="blue"
         unelevated
-        to="/"
+        :to="homeRoute"
         label="Go Home"
         no-caps
       />
@@ -19,5 +19,10 @@
 </template>
 
 <script setup>
-//
+import { computed } from 'vue'
+import { auth } from 'boot/firebase'
+
+const homeRoute = computed(() => {
+  return auth.currentUser ? '/home' : '/'
+})
 </script>

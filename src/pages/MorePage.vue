@@ -1,9 +1,7 @@
 <template>
   <q-page class="more-page column q-pa-lg">
     <div class="text-h5 text-weight-bold text-primary q-pt-lg">More</div>
-    <div class="text-body1 text-grey-7 q-mb-lg">
-      Quick actions and settings.
-    </div>
+    <div class="text-body1 text-grey-7 q-mb-lg">Quick actions and settings.</div>
 
     <q-card flat bordered class="actions-card">
       <q-list separator>
@@ -12,8 +10,12 @@
             <q-icon :name="action.icon" color="primary" />
           </q-item-section>
           <q-item-section>
-            <q-item-label class="text-weight-medium text-subtitle1 q-pt-sm">{{ action.label }}</q-item-label>
-            <q-item-label class="text-subtitle2 text-grey-7 q-pb-sm">{{ action.caption }}</q-item-label>
+            <q-item-label class="text-weight-medium text-subtitle1 q-pt-sm">{{
+              action.label
+            }}</q-item-label>
+            <q-item-label class="text-subtitle2 text-grey-7 q-pb-sm">{{
+              action.caption
+            }}</q-item-label>
           </q-item-section>
           <q-item-section side>
             <q-icon name="chevron_right" color="grey-7" />
@@ -95,7 +97,7 @@ async function handleAction(action) {
   }
 
   if (action.key === 'edit-profile') {
-    await router.push('/onboarding')
+    await router.push('/profile-onboarding')
     return
   }
 

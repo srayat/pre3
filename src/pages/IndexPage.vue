@@ -1,7 +1,9 @@
 <template>
   <q-page class="landing-page column items-center justify-center text-white">
-    <div class="text-h1 text-weight-bold splash-title">PRE</div>
-    <div class="text-h3 text-weight-bold splash-subtitle">Gamified Startup Investing</div>
+    <div class="splash">
+      <img :src="logoUrl" alt="Pre3 Logo" class="logo-image" />
+    </div>
+    <div class="text-body1 splash-subtitle">Gamified Startup Investing</div>
     <q-btn
       label="Get Started"
       color="white"
@@ -15,6 +17,7 @@
 
 <script setup>
 import { useRouter } from 'vue-router'
+import logoUrl from 'assets/logo_small_white.png'
 
 const router = useRouter()
 
@@ -113,9 +116,8 @@ function goToSignIn() {
 .splash-subtitle {
   font-size: 1.1rem;
   color: #d4e4f0;
-  opacity: 0.97;
-  margin-top: 0px;
-  margin-bottom: 1.5em;
+  margin-top: 10px;
+  margin-bottom: 3em;
   letter-spacing: 3px;
 }
 

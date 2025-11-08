@@ -12,7 +12,9 @@
     "test": "echo \"No test specified\" && exit 0",
     "dev": "quasar dev",
     "build": "quasar build",
-    "postinstall": "quasar prepare"
+    "postinstall": "quasar prepare",
+    "build:dev": "QUASAR_ENV=development quasar build",
+    "build:prod": "quasar build"
   },
   "dependencies": {
     "@dataconnect/generated": "file:src/dataconnect-generated",
