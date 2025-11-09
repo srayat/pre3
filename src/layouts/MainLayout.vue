@@ -1,5 +1,5 @@
 <template>
-  <q-layout view="lHh Lpr lFf" class="app-layout">
+  <q-layout view="lHh lpr lFf" class="app-layout">
     <q-header v-if="showHeader" class="app-header">
       <div class="app-header__content">
         <router-link to="/home" class="logo-link">
@@ -32,9 +32,16 @@ const showHeader = computed(() => route.meta?.hideHeader !== true)
 
 <style scoped>
 .app-layout {
-  background: linear-gradient(180deg, #f0f4f8 0%, #dfe7f1 100%);
+  background: #172b40;
+  background: linear-gradient(
+    315deg,
+    rgba(23, 43, 64, 1) 15%,
+    rgba(8, 15, 61, 1) 50%,
+    rgba(7, 16, 36, 1) 87%
+  );
   display: flex;
   justify-content: center;
+  box-sizing: border-box;
 }
 
 .app-header {
@@ -54,7 +61,7 @@ const showHeader = computed(() => route.meta?.hideHeader !== true)
   padding-left: 16px;
   background: var(--q-primary);
   height: 44px;
-  border-radius: 18px 18px 0 0;
+  border-radius: 6px 6px 0 0;
 }
 
 .logo-link {
@@ -83,12 +90,13 @@ const showHeader = computed(() => route.meta?.hideHeader !== true)
   width: 100%;
   max-width: 580px;
   min-height: 100vh;
-  border-radius: 18px;
+  border-radius: 6px;
   overflow: hidden;
   box-shadow: 0 30px 60px rgba(15, 35, 95, 0.22);
   background: #ffffff;
   display: flex;
   flex-direction: column;
+  box-sizing: border-box;
 }
 
 .app-shell__pages {
@@ -113,6 +121,7 @@ const showHeader = computed(() => route.meta?.hideHeader !== true)
     max-width: 100%;
     border-radius: 0;
     box-shadow: none;
+    box-sizing: border-box;
   }
 
   .app-shell__pages > .q-page {

@@ -16,6 +16,7 @@ const db = getFirestore()
  * and links them to any reserved person record that matches their email.
  */
 exports.linkUserToPerson = auth.user().onCreate(async (user) => {
+  console.log('🔥 linkUserToPerson fired for:', user.email) // debug
   const uid = user.uid
   const email = user.email
 
@@ -29,8 +30,9 @@ exports.linkUserToPerson = auth.user().onCreate(async (user) => {
       profileComplete: false,
       // firstName and lastName will be added later via profile onboarding
     })
+    console.log('✅ Created user doc:', user.uid) // debug
   } catch (error) {
-    console.error('Error creating user document:', error)
+    console.error('Error creating user document:', error) // debug
     return // Exit if we can't create the user doc
   }
 

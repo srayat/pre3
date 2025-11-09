@@ -1,33 +1,44 @@
 // app global css in SCSS form
 
-html, body {
-    overscroll-behavior-y: none;
+html,
+body {
+  overscroll-behavior-y: none;
+  overflow-y: scroll; /* always reserve scrollbar space */
+  overflow-x: hidden; /* no horizontal scroll */
 }
 
+/* Hide scrollbars visually but keep scroll functionality */
+::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
 
+* {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* old Edge/IE */
+}
 
 :root {
- --app-deep-blue: #0F1A2B;
-  --app-dusty-blue: #52677D;
-  --app-buttercream: #D1CFC9;
-  --app-ivory-blue: #BDC4D4;
-  --app-alice-blue: #DFE6EC;
-  --app-harper-blue: #9DB3C0;
-  --app-blue-door: #56697C;
-  --app-teal-navy: #2A364B;
+  --app-deep-blue: #0f1a2b;
+  --app-dusty-blue: #52677d;
+  --app-buttercream: #d1cfc9;
+  --app-ivory-blue: #bdc4d4;
+  --app-alice-blue: #dfe6ec;
+  --app-harper-blue: #9db3c0;
+  --app-blue-door: #56697c;
+  --app-teal-navy: #2a364b;
   --app-light-taupe: #e7e7e7;
   --app-lighter-taupe: #fafafa;
 
-  --app-light-steel-1: #F8F9FA;
-  --app-light-steel-2: #E9ECEF;
-  --app-light-steel-3: #DEE2E6;
-  --app-light-steel-4: #CED4DA;
-  --app-light-steel-5: #ADB5BD;
-  --app-light-steel-6: #6C757D;
+  --app-light-steel-1: #f8f9fa;
+  --app-light-steel-2: #e9ecef;
+  --app-light-steel-3: #dee2e6;
+  --app-light-steel-4: #ced4da;
+  --app-light-steel-5: #adb5bd;
+  --app-light-steel-6: #6c757d;
   --app-light-steel-7: #495057;
-  --app-light-steel-8: #343A40;
+  --app-light-steel-8: #343a40;
   --app-light-steel-9: #212529;
-
 
   // Spacing scale
   --space-xs: 4px;
@@ -38,8 +49,6 @@ html, body {
   --space-xxl: 48px;
 
   --app-max-width: 580px;
-
-
 }
 
 @import url('https://fonts.googleapis.com/css2?family=Caprasimo&display=swap');
@@ -47,9 +56,9 @@ html, body {
   font-family: 'Caprasimo', Georgia, serif;
 }
 .app-max-width {
-    max-width: var(--app-max-width);
+  max-width: var(--app-max-width);
 }
 
 .page-heading {
-    padding-top: var(--space-lg);
+  padding-top: var(--space-lg);
 }

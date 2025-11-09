@@ -1,3 +1,8 @@
+/**
+ * NOTE: This file (function body only ) must stay identical to /functions/utils/normalizeEmail.js
+ * If you update one, update the other.
+ */
+
 export function normalizeEmail(email) {
   if (!email) return ''
 

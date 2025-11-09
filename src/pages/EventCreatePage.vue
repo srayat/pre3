@@ -1,5 +1,5 @@
 <template>
-  <q-page class="event-create-page column q-pa-lg">
+  <q-page class="event-create-page column q-pa-md">
     <!-- Header -->
     <div class="row justify-between items-center q-mb-lg q-pt-lg">
       <q-btn flat round icon="arrow_back" color="primary" @click="goBack" />
@@ -8,7 +8,8 @@
     </div>
 
     <div class="text-body1 text-grey-7 q-mb-lg">
-      Share a few details to spin up your pitch event. You can invite founders and judges after saving.
+      Share a few details to spin up your pitch event. You can invite founders and judges after
+      saving.
     </div>
 
     <!-- Stepper -->
@@ -16,11 +17,11 @@
       <q-step :name="1" title="Basic Information" icon="info" :done="currentStep > 1">
         <event-basic-info :form-data="form" :loading="loading" @update:form-data="updateForm" />
         <q-stepper-navigation class="q-mt-md">
-          <q-btn 
-            @click="currentStep = 2" 
-            color="primary" 
-            label="Continue" 
-            :disable="!isStep1Valid" 
+          <q-btn
+            @click="currentStep = 2"
+            color="primary"
+            label="Continue"
+            :disable="!isStep1Valid"
           />
         </q-stepper-navigation>
       </q-step>
@@ -44,9 +45,9 @@
 
     <q-separator class="q-mt-lg" />
     <div class="text-body2 text-grey-7 q-mt-md">
-      After creating an event, you will be able to invite startup founders and judges using their email addresses.
+      After creating an event, you will be able to invite startup founders and judges using their
+      email addresses.
     </div>
-
   </q-page>
 </template>
 
@@ -73,7 +74,7 @@ const form = reactive({
   date: '',
   location: '',
   capacity: null,
-  isPublic: true
+  isPublic: true,
 })
 
 const isStep1Valid = ref(false)
@@ -86,12 +87,12 @@ const updateForm = (newFormData) => {
 function checkStep1Validity() {
   const hasName = form.name && form.name.trim().length > 0
   const hasDate = form.date && form.date.trim().length > 0
-  
+
   if (!hasName || !hasDate) return false
-  
+
   const isValidFormat = /^\d{4}-\d{2}-\d{2}$/.test(form.date)
   if (!isValidFormat) return false
-  
+
   try {
     const [year, month, day] = form.date.split('-').map(Number)
     const selectedDate = new Date(year, month - 1, day)
@@ -156,5 +157,6 @@ async function handleSubmit() {
 .event-create-page {
   min-height: 100%;
   background: linear-gradient(180deg, #edf2fb 0%, #ffffff 90%);
+  box-sizing: border-box;
 }
 </style>

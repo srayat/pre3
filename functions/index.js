@@ -6,16 +6,16 @@ const { setGlobalOptions } = require('firebase-functions')
 const { onCall } = require('firebase-functions/v2/https')
 
 // ✅ Initialize Firebase Admin SDK FIRST
-const admin = require('firebase-admin')
-admin.initializeApp()
+const { getApps, initializeApp } = require('firebase-admin/app')
+if (!getApps().length) initializeApp()
 
 // ✅ THEN import custom functions that use Firestore
 const { sendFounderInvite } = require('./sendFounderInvite')
 const { createEvent, testAddUserDoc } = require('./createEvent')
-const { getHostEvents } = require("./getHostEvents");
-const { defineSecret } = require('firebase-functions/params');
-const sendgridApiKey = defineSecret('SENDGRID_API_KEY');
-const { createStartup } = require('./createStartup');
+const { getHostEvents } = require('./getHostEvents')
+const { defineSecret } = require('firebase-functions/params')
+const sendgridApiKey = defineSecret('SENDGRID_API_KEY')
+const { createStartup } = require('./createStartup')
 const { updateStartup } = require('./updateStartup')
 const { deleteStartup } = require('./deleteStartup')
 
@@ -29,18 +29,11 @@ exports.helloWorld = require('./helloWorld').helloWorld
 exports.logStartupNameChange = require('./logStartupNameChange').logStartupNameChange
 
 // ✅ Export v2 callable functions
-exports.sendFounderInvite = onCall({ cors: true }, sendFounderInvite)
-exports.getHostEvents = onCall({ cors: true }, getHostEvents);
-exports.createEvent = onCall({ cors: true }, createEvent);
-exports.testAddUserDoc = onCall({ cors: true }, testAddUserDoc);
+exports.getHostEvents = onCall({ cors: true }, getHostEvents)
+exports.createEvent = onCall({ cors: true }, createEvent)
+exports.testAddUserDoc = onCall({ cors: true }, testAddUserDoc)
 
-exports.sendFounderInvite = onCall({ cors: true, secrets: [sendgridApiKey]}, sendFounderInvite);
-exports.createStartup = onCall({ cors: true }, createStartup);
+exports.sendFounderInvite = onCall({ cors: true, secrets: [sendgridApiKey] }, sendFounderInvite)
+exports.createStartup = onCall({ cors: true }, createStartup)
 exports.updateStartup = onCall({ cors: true }, updateStartup)
 exports.deleteStartup = onCall({ cors: true }, deleteStartup)
-
-
-
-
-
-

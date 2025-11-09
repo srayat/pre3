@@ -1,3 +1,11 @@
+# v0.1.6
+
+- Fixed the signin and new user record creation issue
+- UI for Setup Steps for Event Management
+- Scroll bar issue affecting app width jump on laptop
+- Landing page background
+- Screen background outside the app page
+
 # v0.1.5
 
 - Added back navigation arrow on User Profile page

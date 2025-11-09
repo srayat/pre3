@@ -49,6 +49,7 @@ import { useQuasar } from 'quasar'
 import { isSignInWithEmailLink, sendSignInLinkToEmail, signInWithEmailLink } from 'firebase/auth'
 import { doc, getDoc } from 'firebase/firestore'
 import { auth, db } from 'boot/firebase'
+import { normalizeEmail, isValidEmail } from 'src/utils/normalizeEmail'
 
 const router = useRouter()
 const route = useRoute()
@@ -64,7 +65,7 @@ const state = reactive({
 
 const emailStorageKey = 'pre3-emailForSignIn'
 
-const emailRules = [(val) => (!!val && val.includes('@')) || 'Enter a valid email address']
+const emailRules = [(val) => (!!val && isValidEmail(val)) || 'Enter a valid email address']
 
 const loading = computed(() => state.sending || state.completing)
 const buttonLabel = computed(() =>
@@ -79,15 +80,11 @@ const cardMessage = computed(() => {
   if (state.mode === 'request') {
     return 'Enter your email address and we will email you a secure link to sign in.'
   }
-
   return 'Open the link we emailed to you. If prompted, confirm the address you used so we can complete your sign-in.'
 })
 
 function getContinuationUrl() {
-  if (typeof window === 'undefined') {
-    return ''
-  }
-
+  if (typeof window === 'undefined') return ''
   const { origin, pathname } = window.location
   return `${origin}${pathname}#/sign-in`
 }
@@ -97,7 +94,6 @@ async function handleSubmit() {
     await completeSignIn()
     return
   }
-
   await sendLink()
 }
 
@@ -109,14 +105,14 @@ async function sendLink() {
 
   try {
     state.sending = true
-    const trimmedEmail = email.value.trim()
+    const normalizedEmail = normalizeEmail(email.value)
 
-    await sendSignInLinkToEmail(auth, trimmedEmail, {
+    await sendSignInLinkToEmail(auth, normalizedEmail, {
       url: getContinuationUrl(),
       handleCodeInApp: true,
     })
 
-    window.localStorage.setItem(emailStorageKey, trimmedEmail)
+    window.localStorage.setItem(emailStorageKey, normalizedEmail)
 
     $q.notify({
       type: 'positive',
@@ -134,13 +130,11 @@ async function sendLink() {
 }
 
 async function completeSignIn() {
-  if (typeof window === 'undefined') {
-    return
-  }
+  if (typeof window === 'undefined') return
 
-  const trimmedEmail = email.value.trim()
+  const normalizedEmail = normalizeEmail(email.value)
 
-  if (!trimmedEmail) {
+  if (!normalizedEmail) {
     state.awaitingEmailForLink = true
     $q.notify({
       type: 'warning',
@@ -151,12 +145,10 @@ async function completeSignIn() {
 
   try {
     state.completing = true
-    const userCredential = await signInWithEmailLink(auth, trimmedEmail, window.location.href)
+    const userCredential = await signInWithEmailLink(auth, normalizedEmail, window.location.href)
     const { user } = userCredential
 
-    if (!user?.uid) {
-      throw new Error('Missing user details after sign-in.')
-    }
+    if (!user?.uid) throw new Error('Missing user details after sign-in.')
 
     const userDocRef = doc(db, 'users', user.uid)
     const userDocSnap = await getDoc(userDocRef)
@@ -191,18 +183,12 @@ async function completeSignIn() {
 }
 
 onMounted(async () => {
-  if (typeof window === 'undefined') {
-    return
-  }
+  if (typeof window === 'undefined') return
 
   const isEmailLink = isSignInWithEmailLink(auth, window.location.href)
-
-  if (!isEmailLink) {
-    return
-  }
+  if (!isEmailLink) return
 
   state.mode = 'complete'
-
   const storedEmail = window.localStorage.getItem(emailStorageKey)
 
   if (storedEmail) {

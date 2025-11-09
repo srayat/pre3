@@ -1,10 +1,7 @@
 <template>
   <div class="setup-steps">
     <!-- Success banner for newly created events -->
-    <q-banner 
-      v-if="recentlyCreated && !loading"
-      class="bg-positive text-white q-mb-md"
-    >
+    <q-banner v-if="recentlyCreated && !loading" class="bg-positive text-white q-mb-md">
       <template v-slot:avatar>
         <q-icon name="check_circle" />
       </template>
@@ -14,14 +11,15 @@
     <!-- Setup Steps Cards - VERTICAL STACK -->
     <div class="column q-gutter-md">
       <!-- Event Info Card -->
-      <q-card class="setup-card cursor-pointer" @click="$emit('open-section', 'event-info')">
+      <q-card
+        class="setup-card cursor-pointer no-shadow"
+        @click="$emit('open-section', 'event-info')"
+      >
         <q-card-section class="row items-center">
           <q-icon name="event" size="lg" color="primary" class="q-mr-md" />
           <div class="col">
             <div class="text-h6 text-weight-bold">Event Info</div>
-            <div class="text-body2 text-grey-8">
-              View and edit event details
-            </div>
+            <div class="text-body2 text-grey-8">View and edit event details</div>
           </div>
           <q-badge v-if="eventData" color="primary" class="text-subtitle2">
             {{ eventData.eventName || 'Manage' }}
@@ -35,13 +33,9 @@
           <q-icon name="business_center" size="lg" color="primary" class="q-mr-md" />
           <div class="col">
             <div class="text-h6 text-weight-bold">Add Startups</div>
-            <div class="text-body2 text-grey-8">
-              Manage pitching startups
-            </div>
+            <div class="text-body2 text-grey-8">Manage the participating startups</div>
           </div>
-          <q-badge color="primary" class="text-subtitle2">
-            {{ startupCount }} added
-          </q-badge>
+          <q-badge color="primary" class="text-subtitle2"> {{ startupCount }} added </q-badge>
         </q-card-section>
       </q-card>
 
@@ -51,13 +45,9 @@
           <q-icon name="gavel" size="lg" color="primary" class="q-mr-md" />
           <div class="col">
             <div class="text-h6 text-weight-bold">Add Judges</div>
-            <div class="text-body2 text-grey-8">
-              Manage event judges
-            </div>
+            <div class="text-body2 text-grey-8">Manage event judges</div>
           </div>
-          <q-badge color="primary" class="text-subtitle2">
-            {{ judgeCount }} added
-          </q-badge>
+          <q-badge color="primary" class="text-subtitle2"> {{ judgeCount }} added </q-badge>
         </q-card-section>
       </q-card>
 
@@ -67,11 +57,9 @@
           <q-icon name="quiz" size="lg" color="primary" class="q-mr-md" />
           <div class="col">
             <div class="text-h6 text-weight-bold">Rating Questions</div>
-            <div class="text-body2 text-grey-8">
-              Configure evaluation criteria
-            </div>
+            <div class="text-body2 text-grey-8">Configure evaluation criteria</div>
           </div>
-          <q-badge :color="ratingQuestionsEnabled ? 'positive' : 'grey'"  class="text-subtitle2">
+          <q-badge :color="ratingQuestionsEnabled ? 'positive' : 'grey'" class="text-subtitle2">
             {{ ratingQuestionsEnabled ? 'Enabled' : 'Not set' }}
           </q-badge>
         </q-card-section>
@@ -87,13 +75,13 @@ defineProps({
   eventData: Object,
   startupCount: {
     type: Number,
-    default: 0
+    default: 0,
   },
   judgeCount: {
     type: Number,
-    default: 0
+    default: 0,
   },
-  ratingQuestionsEnabled: Boolean
+  ratingQuestionsEnabled: Boolean,
 })
 
 defineEmits(['open-section'])
@@ -101,12 +89,17 @@ defineEmits(['open-section'])
 
 <style scoped>
 .setup-card {
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: box-shadow 0.3s ease;
+  border: 1px solid #d1d1d1;
+  background: #fafcff;
+  box-shadow: none;
+  margin-bottom: 10px;
+  padding: 10px 5px;
 }
 
 .setup-card:hover {
-  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-  background: #e8e8e8;
-  border: 1px solid #d1d1d1;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  background: #f1f1f1;
+  border: 1px solid #aaa;
 }
 </style>

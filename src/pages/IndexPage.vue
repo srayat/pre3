@@ -40,65 +40,17 @@ function goToSignIn() {
   position: relative;
 
   /* Deep dark prussian blue with strategic lighter areas */
-  background:
-    radial-gradient(ellipse at 20% 10%, rgba(25, 55, 95, 0.4) 0%, transparent 50%),
-    radial-gradient(ellipse at 80% 90%, rgba(30, 60, 100, 0.3) 0%, transparent 50%),
-    linear-gradient(145deg, #000d1a 0%, #001829 30%, #00213d 60%, #001420 100%);
 
-  /* Glassmorphic effect */
-  backdrop-filter: blur(24px) saturate(140%);
-  -webkit-backdrop-filter: blur(24px) saturate(140%);
-
-  /* Refined border and depth */
-  border: 1px solid rgba(100, 150, 200, 0.12);
-  border-radius: 24px;
-  box-shadow:
-    0 12px 40px rgba(0, 0, 0, 0.6),
-    inset 0 1px 0 rgba(255, 255, 255, 0.08),
-    0 0 80px rgba(15, 45, 75, 0.3);
+  background: #172b40;
+  background: linear-gradient(
+    315deg,
+    rgba(23, 43, 64, 1) 15%,
+    rgba(8, 15, 61, 1) 50%,
+    rgba(7, 16, 36, 1) 87%
+  );
 
   color: #f0f4f8;
   text-align: center;
-}
-
-/* Static light accent (no animation) */
-.landing-page::before {
-  content: '';
-  position: absolute;
-  top: -20%;
-  right: -10%;
-  width: 300px;
-  height: 300px;
-  background: radial-gradient(
-    circle,
-    rgba(70, 120, 180, 0.15) 0%,
-    rgba(40, 80, 130, 0.08) 40%,
-    transparent 70%
-  );
-  filter: blur(60px);
-  border-radius: 50%;
-  pointer-events: none;
-  z-index: -1;
-}
-
-/* Secondary light accent */
-.landing-page::after {
-  content: '';
-  position: absolute;
-  bottom: -15%;
-  left: -5%;
-  width: 250px;
-  height: 250px;
-  background: radial-gradient(
-    circle,
-    rgba(50, 100, 150, 0.12) 0%,
-    rgba(30, 70, 110, 0.06) 40%,
-    transparent 70%
-  );
-  filter: blur(50px);
-  border-radius: 50%;
-  pointer-events: none;
-  z-index: -1;
 }
 
 /* Crisp white title */

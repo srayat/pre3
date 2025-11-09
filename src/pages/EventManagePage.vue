@@ -48,6 +48,7 @@
         :loading="eventLoading"
         @close="handleCloseSection"
         @event-updated="handleEventUpdated"
+        class=""
       />
 
       <startup-list-section
@@ -57,6 +58,7 @@
         :event-id="eventId"
         @close="handleCloseSection"
         @add-startup="submitStartup"
+        class="bg-grey-4"
       />
 
       <judge-list-section
@@ -79,8 +81,8 @@
     <!-- Status Cards Wrapper -->
     <div v-if="!activeSection">
       <!-- 1️⃣ SETUP -->
-      <q-card v-if="status === 'setup'" class="q-pa-md q-mt-lg">
-        <div class="column items-center q-gutter-md">
+      <q-card v-if="status === 'setup'" class="q-pa-md q-mt-lg shadow-1 bg-grey-2">
+        <div class="column items-center q-gutter-md border">
           <q-icon name="build_circle" size="48px" color="primary" />
           <div class="text-h6 text-weight-bold">Event in Setup</div>
           <div class="text-body2 text-grey-7 text-center q-mb-md">
