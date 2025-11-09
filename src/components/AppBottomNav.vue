@@ -1,29 +1,62 @@
-
 <template>
   <div class="app-bottom-nav bg-white text-primary">
     <q-bottom-navigation>
-    <q-tabs class="full-width app-bottom-nav__tabs" align="justify" no-caps active-color="primary">
-      <q-route-tab
-        v-for="item in navItems"
-        :key="item.to"
-        :to="item.to"
-        :name="item.to"
-        :icon="item.icon"
-        :label="item.label"
-        exact
-      />
-    </q-tabs>
-   </q-bottom-navigation>
+      <q-tabs
+        class="full-width app-bottom-nav__tabs"
+        align="justify"
+        no-caps
+        active-color="primary"
+      >
+        <q-route-tab
+          v-for="item in navItems"
+          :key="item.to"
+          :to="item.to"
+          :name="item.to"
+          :icon="item.icon"
+          :label="item.label"
+          exact
+        >
+          <!-- 🔹 Show unread badge only on Alerts tab -->
+          <template v-if="item.to === '/notifications'" #default>
+            <q-badge v-if="unreadCount > 0" color="red" floating rounded :label="unreadCount" />
+          </template>
+        </q-route-tab>
+      </q-tabs>
+    </q-bottom-navigation>
   </div>
 </template>
 
 <script setup>
+import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { collection, query, where, onSnapshot } from 'firebase/firestore'
+import { db, auth } from 'boot/firebase'
+
 const navItems = [
   { to: '/home', icon: 'home', label: 'Home' },
   { to: '/events', icon: 'event_note', label: 'My Events' },
   { to: '/notifications', icon: 'notifications', label: 'Alerts' },
   { to: '/more', icon: 'more_horiz', label: 'More' },
 ]
+
+// 🔹 Reactive unread count
+const unreadCount = ref(0)
+let unsubscribe = null
+
+onMounted(() => {
+  const user = auth.currentUser
+  if (!user) return
+
+  // Query all unread notifications for this user
+  const q = query(collection(db, `users/${user.uid}/notifications`), where('read', '==', false))
+
+  unsubscribe = onSnapshot(q, (snapshot) => {
+    unreadCount.value = snapshot.size
+  })
+})
+
+onBeforeUnmount(() => {
+  if (unsubscribe) unsubscribe()
+})
 </script>
 
 <style lang="scss" scoped>
@@ -57,8 +90,7 @@ const navItems = [
 }
 
 :deep(.q-tab__label) {
-      
-    }
+}
 
 @media (max-width: 520px) {
   .app-bottom-nav {
@@ -68,5 +100,4 @@ const navItems = [
       env(safe-area-inset-left, 0);
   }
 }
-
 </style>

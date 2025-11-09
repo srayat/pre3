@@ -1,3 +1,8 @@
+# v0.1.7
+
+- Enabeld the Notifications functionality
+- Upon event creation, email is sent to host (and developer), and in-app notification is sent too.
+
 # v0.1.6
 
 - Fixed the signin and new user record creation issue

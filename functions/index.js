@@ -27,6 +27,7 @@ exports.reservePersonByEmail = require('./reservePersonByEmail').reservePersonBy
 exports.linkUserToPerson = require('./onUserCreate').linkUserToPerson
 exports.helloWorld = require('./helloWorld').helloWorld
 exports.logStartupNameChange = require('./logStartupNameChange').logStartupNameChange
+exports.onEventCreated = require('./onEventCreated').onEventCreated
 
 // ✅ Export v2 callable functions
 exports.getHostEvents = onCall({ cors: true }, getHostEvents)
