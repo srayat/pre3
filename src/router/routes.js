@@ -108,6 +108,10 @@ const routes = [
         component: () => import('pages/UserProfilePage.vue'),
         meta: { requiresAuth: true, hideBottomNav: true },
       },
+      {
+        path: '/account-summary-demo',
+        component: () => import('pages/AccountSummaryDemo.vue'),
+      },
     ],
   },
 

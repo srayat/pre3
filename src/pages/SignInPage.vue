@@ -83,9 +83,24 @@ const cardMessage = computed(() => {
   return 'Open the link we emailed to you. If prompted, confirm the address you used so we can complete your sign-in.'
 })
 
+// To dynamically switch between dev/localhost and prod
 function getContinuationUrl() {
-  if (typeof window === 'undefined') return ''
-  // Use full custom domain URL without hash
+  if (typeof window === 'undefined') return 'https://premoney.com/verify-email'
+
+  // Check if we're in development
+  const isDev =
+    import.meta.env.MODE === 'development' ||
+    import.meta.env.DEV === true ||
+    window.location.hostname === 'localhost' ||
+    window.location.port === '9000'
+
+  if (isDev) {
+    // For localhost, use hash routing (more reliable)
+    const { protocol, host } = window.location
+    return `${protocol}//${host}/verify-email`
+  }
+
+  // Production
   return 'https://premoney.com/verify-email'
 }
 

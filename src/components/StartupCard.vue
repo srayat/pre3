@@ -1,57 +1,58 @@
 <template>
-  <q-card class="startup-card q-mb-md">
-    <q-card-section>
-      <!-- Startup Header - Clickable Name -->
-      <div class="row items-center justify-between q-mb-sm">
-        <div
-          class="text-h6 text-weight-bold text-primary cursor-pointer"
-          @click="openStartupProfile"
-        >
-          {{ startup.name }}
-        </div>
-
-        <!-- Rating Button - Now goes to rating page -->
-        <q-btn round color="orange" icon="star" @click="openRatingPage">
-          <q-tooltip>Rate this pitch</q-tooltip>
-          <q-badge v-if="hasRated" color="red" floating rounded />
-        </q-btn>
+  <q-card class="startup-card q-pa-md q-mb-md shadow-2">
+    <!-- 🔹 Header: Startup Name -->
+    <div class="row items-center justify-between q-mb-sm">
+      <div
+        class="text-h6 text-weight-bold text-blue-grey-9 cursor-pointer"
+        @click="openStartupProfile"
+      >
+        {{ startup.name }}
       </div>
+    </div>
 
-      <!-- Startup Description -->
-      <div class="text-body1 text-grey-8 q-mb-md">
-        {{ startup.description }}
+    <!-- 🔹 Description -->
+    <div class="text-body2 text-grey-8 q-mb-md line-clamp">
+      {{ startup.description || 'No description provided.' }}
+    </div>
+
+    <!-- 🔹 Bottom Row: Rating (left) + Investment (right) -->
+    <div class="row items-center justify-between">
+      <!-- ⭐ Rating Button -->
+      <q-btn
+        :color="isRated ? 'grey-5' : 'blue-7'"
+        :icon="isRated ? 'star' : 'star_border'"
+        @click="openRatingPage"
+        unelevated
+      >
+        <q-tooltip>
+          {{ isRated ? 'You already rated this startup' : 'Rate this pitch' }}
+        </q-tooltip>
+      </q-btn>
+
+      <!-- 💰 Investment Input + Button -->
+      <div class="row items-center q-gutter-sm">
+        <q-input
+          v-model.number="localAmount"
+          type="number"
+          dense
+          outlined
+          :disable="disabled"
+          :min="0"
+          style="width: 100px"
+          placeholder="PM"
+          @keyup.enter="commitChange"
+        />
+        <q-btn
+          color="blue-7"
+          label="Invest"
+          unelevated
+          :disable="disabled || localAmount <= 0"
+          @click="commitChange"
+        />
       </div>
+    </div>
 
-      <!-- Investment Section - ONLY THIS PART CHANGED -->
-      <div v-if="typeof invested !== 'undefined'" class="q-mt-md">
-        <div class="row items-center q-gutter-sm">
-          <q-input
-            v-model.number="localAmount"
-            type="number"
-            placeholder="Enter amount"
-            outlined
-            dense
-            :disable="disabled"
-            :min="0"
-            class="col-grow text-h6"
-            @keyup.enter="commitChange"
-          >
-            <template #prepend>
-              <span class="text-grey-7 text-caption">PM</span>
-            </template>
-          </q-input>
-
-          <q-btn
-            color="positive"
-            label="Invest"
-            unelevated
-            :disable="disabled || localAmount <= 0"
-            @click="commitChange"
-          />
-        </div>
-        <div class="text-caption text-grey-6 q-mt-xs">Use your PreMoney balance</div>
-      </div>
-    </q-card-section>
+    <div class="text-caption text-grey-6 q-mt-xs text-right">Use your PreMoney balance</div>
   </q-card>
 </template>
 
@@ -65,6 +66,7 @@ const props = defineProps({
   invested: Number,
   disabled: Boolean,
   eventId: String,
+  isRated: Boolean,
 })
 const emit = defineEmits(['update-investment'])
 
@@ -78,7 +80,7 @@ const commitChange = debounce(() => {
   emit('update-investment', Number(localAmount.value))
 }, 300)
 
-const hasRated = ref(false)
+// const hasRated = ref(false) // can be removed
 const router = useRouter()
 
 const openStartupProfile = () => {

@@ -10,14 +10,14 @@
       <div class="text-subtitle1 q-mt-md text-grey-7">Loading event data...</div>
     </div>
 
-    <!-- ⚠️ Error State -->
+    <!-- Error State -->
     <div v-else-if="error" class="flex flex-center column q-mt-xl text-center">
       <q-icon name="error" size="48px" color="negative" class="q-mb-md" />
       <div class="text-h6 text-negative q-mb-sm">{{ error }}</div>
       <q-btn color="primary" label="Go Home" @click="$router.push('/home')" />
     </div>
 
-    <!-- ⚪ Event ended -->
+    <!-- Event ended -->
     <div
       v-else-if="eventStatus === 'ended'"
       class="full-screen-message flex flex-center column text-center"
@@ -26,7 +26,7 @@
       <div class="text-subtitle1">Results will be available soon.</div>
     </div>
 
-    <!-- 🟢 Event live -->
+    <!-- Event live -->
     <div v-else-if="eventStatus === 'live'">
       <div class="row justify-between items-center q-mb-md q-mt-xl">
         <q-btn icon="arrow_back" flat round @click="$router.push('/home')" />
@@ -36,15 +36,34 @@
         </q-btn>
       </div>
 
-      <!-- 💰 PreMoney Balance -->
-      <div
-        class="bg-primary text-white q-pa-md q-mb-md rounded-borders flex justify-between items-center"
-      >
-        <div class="text-subtitle1">Your PreMoney Balance</div>
-        <div class="text-h6 text-bold">
-          {{ remainingBalance.toFixed(0) }} / {{ totalAllocated.toFixed(0) }} PM
+      <!-- 🧠 PreMoney Account Summary -->
+      <q-card class="q-pa-lg gradient-card text-white text-center q-mb-xl">
+        <div class="text-subtitle1 text-weight-bold row flex-center">
+          Your PreMoney Fund for the Event: {{ Number(totalAllocated ?? 0).toFixed(0) }}
         </div>
-      </div>
+
+        <div class="row justify-around q-mt-md">
+          <div>
+            <div class="text-overline text-orange text-weight-bold">Invested</div>
+            <div class="text-h5 text-orange text-center text-weight-bold">
+              {{ totalAllocated - remainingBalance }}
+            </div>
+          </div>
+          <div>
+            <div class="text-overline text-center text-weight-bold">Balance</div>
+            <div class="text-h5 text-grey-1 text-center text-weight-bold">
+              {{ Number(remainingBalance ?? 0).toFixed(0) }}
+            </div>
+          </div>
+        </div>
+
+        <div class="progress-bar q-mt-md bg-grey-5 no-border-radius">
+          <div
+            class="progress-fill bg-orange"
+            :style="{ width: ((totalAllocated - remainingBalance) / totalAllocated) * 100 + '%' }"
+          ></div>
+        </div>
+      </q-card>
 
       <!-- 🧠 Loading startups -->
       <div v-if="loading" class="flex flex-center column q-my-xl text-grey-7">
@@ -67,6 +86,7 @@
             :invested="investments[startup.id] || 0"
             :disabled="!isLive"
             :event-id="eventId"
+            :is-rated="isStartupRated(startup.id)"
             @update-investment="(amount) => updateInvestment(startup.id, amount, isLive)"
           />
         </div>
@@ -103,6 +123,7 @@ import { db } from 'boot/firebase'
 import StartupCard from 'components/StartupCard.vue'
 import EventOnboarding from 'components/EventOnboarding.vue'
 import { useInvestments } from 'src/composables/useInvestments'
+import { useRatings } from 'src/composables/useRatings'
 
 const route = useRoute()
 const router = useRouter()
@@ -117,6 +138,10 @@ const eventData = ref(null)
 const loading = ref(false)
 const error = ref('')
 const unsubscribe = ref(null)
+const { ratedStartups } = useRatings(eventId)
+const isStartupRated = (startupId) => {
+  return ratedStartups.value?.has(startupId) || false
+}
 
 // 🔹 Load investment composable (pass eventId directly)
 const { totalAllocated, investments, remainingBalance, updateInvestment } = useInvestments(eventId)
@@ -251,5 +276,26 @@ watch(eventStatus, (newVal) => {
 .full-screen-message {
   height: 80vh;
   color: #555;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 8px;
+}
+.progress-fill {
+  height: 8px;
+  zbackground: #ffd54f;
+}
+
+.gradient-card {
+  background: #060421;
+  background: linear-gradient(
+    148deg,
+    rgba(6, 4, 33, 1) 0%,
+    rgba(12, 12, 105, 1) 57%,
+    rgba(21, 121, 179, 1) 100%
+  );
+  border-radius: 20px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
 }
 </style>

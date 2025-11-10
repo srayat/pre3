@@ -1,3 +1,10 @@
+# v0.2.0
+
+- Fixed the custom domain signin affecting dev/ localhost sign in
+- Rated startups now have greyed out Rating Icon
+- Startup Card has a redesigned layout
+- Changed some Firestore Rules
+
 # v0.1.9
 
 - Premoney.com has been configured for the webapp

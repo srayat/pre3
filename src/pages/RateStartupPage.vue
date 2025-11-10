@@ -159,6 +159,8 @@ const submitRating = async () => {
     })
 
     Notify.create({ message: 'Rating submitted successfully!', color: 'positive', position: 'top' })
+    // Add small delay before going back
+    await new Promise((resolve) => setTimeout(resolve, 300))
     router.back()
   } catch (err) {
     console.error('Submit error:', err)
