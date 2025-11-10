@@ -13,6 +13,11 @@ const routes = [
         component: () => import('pages/SignInPage.vue'),
         meta: { hideBottomNav: true },
       },
+      {
+        path: 'verify-email',
+        component: () => import('pages/VerifyEmailPage.vue'),
+        meta: { hideHeader: true, hideBottomNav: true },
+      },
 
       // ========== EVENT FLOW ROUTES ==========
 

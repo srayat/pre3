@@ -1,10 +1,12 @@
 [
   {
     "origin": [
-      "https://pre3-dev.web.app",
+      "https://pre3-36e57.web.app",
+      "https://pre3-36e57.firebaseapp.com",
       "http://localhost:9000",
       "http://127.0.0.1:9000",
-      "https://premoney.com"
+      "https://premoney.com",
+      "https://pre3-dev.web.app"
     ],
     "method": ["GET", "POST", "PUT", "DELETE", "HEAD"],
     "responseHeader": ["Content-Type", "x-goog-meta-*"],

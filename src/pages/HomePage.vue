@@ -73,8 +73,9 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useQuasar } from 'quasar'
 import { getDoc, doc } from 'firebase/firestore'
-import { db } from 'boot/firebase'
+import { db, functions } from 'boot/firebase'
 import { useEventStore } from 'stores/event-store'
+import { httpsCallable } from 'firebase/functions'
 
 const router = useRouter()
 const $q = useQuasar()
@@ -194,6 +195,31 @@ const handleSubmit = async () => {
     }
 
     if (eventData.status === 'live') {
+      // Call cloud function to create wallet + investor record
+      try {
+        const joiningPremoney = httpsCallable(functions, 'joiningPremoney')
+        const result = await joiningPremoney({ eventId: eventCode })
+
+        console.log('Join Event Result:', result.data)
+
+        if (result.data.status === 'already_joined') {
+          $q.notify({
+            type: 'info',
+            message: 'You have already joined this event.',
+            position: 'top',
+          })
+        } else {
+          $q.notify({
+            type: 'positive',
+            message: 'Premoney added to your account!',
+            position: 'top',
+          })
+        }
+      } catch (fnError) {
+        console.error('Error joining event:', fnError)
+      }
+
+      // Route to onboarding
       await router.replace({ name: 'event-onboarding', params: { eventId: eventCode } })
     }
   } catch (err) {

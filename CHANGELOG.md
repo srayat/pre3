@@ -1,3 +1,17 @@
+# v0.1.9
+
+- Premoney.com has been configured for the webapp
+- The domain has been authenticated by both Firebase Hosting and Auth
+- Auth emails are using the custom domain
+- Security rules for Ratings and Investments have been fixed
+- Some unused pages and components were deleted
+
+# v0.1.8
+
+- Premoney Account is created for the user when the user joins event for the first time
+- Default amount of 10,000 is added to the account for now
+- Future version will pull this amount from Event Info
+
 # v0.1.7
 
 - Enabeld the Notifications functionality

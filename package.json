@@ -1,8 +1,8 @@
 {
-  "name": "pre3",
+  "name": "Pre",
   "version": "0.0.1",
   "description": "A webapp for pitch events",
-  "productName": "pre3webapp",
+  "productName": "Pre App",
   "author": "Sarbjeet S. Rayat",
   "type": "module",
   "private": true,
@@ -13,8 +13,10 @@
     "dev": "quasar dev",
     "build": "quasar build",
     "postinstall": "quasar prepare",
-    "build:dev": "QUASAR_ENV=development quasar build",
-    "build:prod": "quasar build"
+    "build:dev": "quasar build -m spa --mode development",
+    "build:prod": "quasar build -m spa --mode production",
+    "deploy:dev": "firebase use dev && npm run build:dev && firebase deploy --only hosting:dev",
+    "deploy:prod": "firebase use prod && npm run build:prod && firebase deploy --only hosting:prod"
   },
   "dependencies": {
     "@dataconnect/generated": "file:src/dataconnect-generated",

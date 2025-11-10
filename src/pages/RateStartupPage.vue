@@ -79,9 +79,16 @@ const eventStore = useEventStore()
 const currentUser = auth.currentUser
 const user = currentUser || eventStore.currentUser
 
-// 🔹 Use eventId directly from route if available
-const eventId =
-  route.params.eventId || eventStore.currentEvent?.id || localStorage.getItem('currentEventId')
+// 🔹 Ensure eventId is always a string
+const eventId = String(
+  route.params.eventId ||
+    eventStore.currentEvent?.id ||
+    localStorage.getItem('currentEventId') ||
+    '',
+).trim()
+
+// 🔹 Ensure startupId is always a string
+const startupId = String(route.params.startupId || '').trim()
 
 const ratings = ref({})
 const comments = ref('')
@@ -105,11 +112,12 @@ const goBack = () => router.back()
 const submitRating = async () => {
   if (!isRatingValid.value) return
 
-  console.log('🧩 DEBUG eventId:', eventId)
+  console.log('🧩 DEBUG eventId:', eventId, 'type:', typeof eventId)
+  console.log('🧩 DEBUG startupId:', startupId, 'type:', typeof startupId)
   console.log('🧩 DEBUG user:', user)
 
-  if (!eventId || !user) {
-    Notify.create({ message: 'Missing event or user context', color: 'negative' })
+  if (!eventId || !startupId || !user) {
+    Notify.create({ message: 'Missing event, startup, or user context', color: 'negative' })
     return
   }
 
@@ -118,10 +126,10 @@ const submitRating = async () => {
   try {
     const totalScore = Object.values(ratings.value).reduce((a, b) => a + (b || 0), 0)
     const ratingData = {
-      eventId,
-      startupId: route.params.startupId,
+      eventId: String(eventId), // Explicit string conversion
+      startupId: String(startupId), // Explicit string conversion
       startupName: startup.value?.name || '',
-      userId: user.uid,
+      userId: String(user.uid), // Explicit string conversion
       userEmail: user.email,
       ratings: ratings.value,
       totalScore,
@@ -132,7 +140,7 @@ const submitRating = async () => {
     // 🔹 1. Primary detailed rating under each startup
     const ratingDocRef = doc(
       db,
-      `events/${eventId}/startups/${route.params.startupId}/ratings/${user.uid}`,
+      `events/${String(eventId)}/startups/${String(startupId)}/ratings/${String(user.uid)}`,
     )
 
     await setDoc(ratingDocRef, ratingData, { merge: true })
@@ -140,12 +148,12 @@ const submitRating = async () => {
     // 🔹 2. Mirror lightweight summary under /events/{eventId}/ratings/
     const eventRatingRef = doc(
       db,
-      `events/${eventId}/ratings/${route.params.startupId}_${user.uid}`,
+      `events/${String(eventId)}/ratings/${String(startupId)}_${String(user.uid)}`,
     )
     await setDoc(eventRatingRef, {
-      startupId: route.params.startupId,
+      startupId: String(startupId),
       startupName: startup.value?.name || '',
-      userId: user.uid,
+      userId: String(user.uid),
       totalScore,
       timestamp: serverTimestamp(),
     })
@@ -161,22 +169,19 @@ const submitRating = async () => {
 }
 
 if (!eventStore.currentEvent && eventId) {
-  eventStore.currentEvent = { id: eventId } // minimal stub
+  eventStore.currentEvent = { id: String(eventId) } // Ensure string
 }
 
-// 🔹 Fetch startup name directly from the event’s subcollection
+// 🔹 Fetch startup name directly from the event's subcollection
 onMounted(async () => {
-  const startupId = route.params.startupId
-  const resolvedEventId = route.params.eventId || eventId
-
-  if (!resolvedEventId || !startupId) {
+  if (!eventId || !startupId) {
     Notify.create({ message: 'Missing event or startup info', color: 'negative' })
     router.replace('/home')
     return
   }
 
   try {
-    const startupRef = doc(db, `events/${resolvedEventId}/startups/${startupId}`)
+    const startupRef = doc(db, `events/${String(eventId)}/startups/${String(startupId)}`)
     const startupSnap = await getDoc(startupRef)
 
     if (startupSnap.exists()) {

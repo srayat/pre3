@@ -2,79 +2,86 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    
-    // Helper functions
+
     function isSignedIn() {
       return request.auth != null;
     }
-    
-    function isOwner(uid) {
-      return request.auth != null && request.auth.uid == uid;
+
+    function isEventHost(eventId) {
+      return isSignedIn() &&
+        get(/databases/$(database)/documents/events/$(eventId)).data.hostUid == request.auth.uid;
     }
-    
-    // Users collection
-    match /users/{uid} {
-      allow read: if isSignedIn();
-      allow write: if isOwner(uid);
-      
-      // User's hosted events
-      match /hostedEvents/{eventId} {
-        allow read: if isOwner(uid);
-        allow write: if isOwner(uid);
-      }
-      
-      // User's event accounts
-      match /eventPremoneyAccounts/{eventId} {
-        allow read, write: if isOwner(uid);
+
+    match /users/{userId} {
+      allow read, write: if isSignedIn() && request.auth.uid == userId;
+
+      match /{document=**} {
+        allow read, write: if isSignedIn() && request.auth.uid == userId;
       }
 
-      match /users/{userId}/{allPaths=**} {
-        allow read, write: if request.auth != null && request.auth.uid == userId;
-      }
-
-      // 🔹 User-level notifications
-      // Allows each user to read their own notifications, but not write them
-      // ✅ User notifications
-      match /notifications/{notifId} {
-        allow read, write, update: if request.auth != null && request.auth.uid == uid;
-      }
+    match /eventPremoneyAccounts/{eventId} {
+      allow read: if isSignedIn() && request.auth.uid == userId;
+      allow create, update: if isSignedIn() && request.auth.uid == userId;
+    }
 
     }
-    
-    // Events collection
+
     match /events/{eventId} {
       allow read: if isSignedIn();
-      allow write: if isSignedIn();
-      
-      // Startups under event
+      allow create, update, delete: if isEventHost(eventId);
+
       match /startups/{startupId} {
         allow read: if isSignedIn();
-        allow write: if isSignedIn();
-        
-        // Ratings for startups
+        allow create, update, delete: if isEventHost(eventId);
+
+        // Ratings under each startup - SIMPLIFIED
         match /ratings/{userId} {
           allow read: if isSignedIn();
-          allow write: if isOwner(userId);
+          allow write: if isSignedIn() && request.auth.uid == userId;
         }
       }
-      
-      // Investments under event
-      match /investments/{investmentId} {
+
+      match /judges/{judgeId} {
         allow read: if isSignedIn();
-        allow write: if isSignedIn();
+        allow create, update, delete: if isEventHost(eventId);
       }
-      
-      // Event-level ratings
+
+      match /investors/{userId} {
+        allow read: if isSignedIn();
+        allow create, update: if isSignedIn() && request.auth.uid == userId;
+      }
+
+      // Event-level ratings mirror - SIMPLIFIED
       match /ratings/{ratingId} {
         allow read: if isSignedIn();
         allow write: if isSignedIn();
       }
-    }
 
-    // 🔹 Root-level notifications (system logs only)
-    // Clients cannot read or write directly to this collection
-    match /notifications/{notifId} {
-      allow read, write: if false;
+      match /investments/{investmentId} {
+        allow read: if isSignedIn();
+        allow create, update: if isSignedIn()
+          && request.resource.data.userId == request.auth.uid
+          && (request.resource.data.eventId == eventId || request.resource.data.eventId == int(eventId));
+        allow delete: if isEventHost(eventId);
+      }
+
+      match /feedback/{feedbackId} {
+        allow read: if isSignedIn();
+        allow create, update: if isSignedIn()
+          && request.resource.data.userId == request.auth.uid
+          && (request.resource.data.eventId == eventId || request.resource.data.eventId == int(eventId));
+        allow delete: if isEventHost(eventId);
+      }
+
+      match /notifications/{notifId} {
+        allow read: if isSignedIn() && request.auth.uid == resource.data.userUid;
+        allow create: if isSignedIn();
+        allow delete: if isSignedIn() && request.auth.uid == resource.data.userUid;
+      }
+
+      match /{document=**} {
+        allow read: if isSignedIn();
+      }
     }
   }
 }

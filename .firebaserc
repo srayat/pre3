@@ -19,6 +19,9 @@
       "hosting": {
         "prod": [
           "pre3-36e57"
+        ],
+        "dev": [
+          "pre3-dev"
         ]
       }
     }

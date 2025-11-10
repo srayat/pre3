@@ -85,8 +85,8 @@ const cardMessage = computed(() => {
 
 function getContinuationUrl() {
   if (typeof window === 'undefined') return ''
-  const { origin, pathname } = window.location
-  return `${origin}${pathname}#/sign-in`
+  // Use full custom domain URL without hash
+  return 'https://premoney.com/verify-email'
 }
 
 async function handleSubmit() {
@@ -108,11 +108,16 @@ async function sendLink() {
     const normalizedEmail = normalizeEmail(email.value)
 
     await sendSignInLinkToEmail(auth, normalizedEmail, {
-      url: getContinuationUrl(),
+      url: getContinuationUrl(), // Use the function here
       handleCodeInApp: true,
     })
 
     window.localStorage.setItem(emailStorageKey, normalizedEmail)
+
+    // Also save redirect URL if exists
+    if (route.query.redirect) {
+      window.localStorage.setItem('pre3-redirectAfterSignIn', route.query.redirect)
+    }
 
     $q.notify({
       type: 'positive',
