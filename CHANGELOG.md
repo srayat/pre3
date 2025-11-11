@@ -1,3 +1,8 @@
+# v0.2.1
+
+- Ratings Questions from Firestore now
+- PreMoney Account Summary was in last version v0.2.0
+
 # v0.2.0
 
 - Fixed the custom domain signin affecting dev/ localhost sign in

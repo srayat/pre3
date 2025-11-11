@@ -10,8 +10,14 @@
       Share your feedback on their pitch
     </div>
 
+    <!-- Loading State -->
+    <div v-if="isLoadingQuestions" class="flex flex-center q-my-xl">
+      <q-spinner size="48px" color="primary" />
+      <div class="text-subtitle1 q-mt-md text-grey-7">Loading questions...</div>
+    </div>
+
     <!-- Ratings -->
-    <div class="rating-container" style="max-width: 700px; margin: 0 auto">
+    <div v-else class="rating-container" style="max-width: 700px; margin: 0 auto">
       <div v-for="question in ratingQuestions" :key="question.id" class="rating-question q-mb-xl">
         <div class="text-h6 q-mb-md">{{ question.text }}</div>
         <div class="row justify-between items-center q-mb-sm">
@@ -71,6 +77,7 @@ import { useEventStore } from 'stores/event-store'
 import { db, auth } from 'boot/firebase'
 import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore'
 import { Notify } from 'quasar'
+import { useEventQuestions } from 'src/composables/useEventQuestions'
 
 const route = useRoute()
 const router = useRouter()
@@ -95,13 +102,23 @@ const comments = ref('')
 const isSubmitting = ref(false)
 const startup = ref(null)
 
-const ratingQuestions = [
-  { id: 'clarity', text: 'How clear and understandable was their business idea?' },
-  { id: 'potential', text: 'Market potential and scalability of their solution?' },
-  { id: 'team', text: 'Strength and experience of the founding team?' },
-  { id: 'innovation', text: 'How innovative and unique is their approach?' },
-  { id: 'presentation', text: 'Quality and effectiveness of their pitch delivery?' },
-]
+// ✅ Use the composable
+const { audienceQuestions, isLoading: isLoadingQuestions, fetchQuestions } = useEventQuestions()
+
+// ✅ Use questions from composable, fallback to hardcoded if empty
+const ratingQuestions = computed(() => {
+  if (audienceQuestions.value.length > 0) {
+    return audienceQuestions.value
+  }
+  // Fallback to hardcoded questions
+  return [
+    { id: 'clarity', text: 'How clear and understandable was their business idea?' },
+    { id: 'potential', text: 'Market potential and scalability of their solution?' },
+    { id: 'team', text: 'Strength and experience of the founding team?' },
+    { id: 'innovation', text: 'How innovative and unique is their approach?' },
+    { id: 'presentation', text: 'Quality and effectiveness of their pitch delivery?' },
+  ]
+})
 
 const isRatingValid = computed(() => {
   return Object.values(ratings.value).some((r) => r > 0)
@@ -126,10 +143,10 @@ const submitRating = async () => {
   try {
     const totalScore = Object.values(ratings.value).reduce((a, b) => a + (b || 0), 0)
     const ratingData = {
-      eventId: String(eventId), // Explicit string conversion
-      startupId: String(startupId), // Explicit string conversion
+      eventId: String(eventId),
+      startupId: String(startupId),
       startupName: startup.value?.name || '',
-      userId: String(user.uid), // Explicit string conversion
+      userId: String(user.uid),
       userEmail: user.email,
       ratings: ratings.value,
       totalScore,
@@ -171,10 +188,10 @@ const submitRating = async () => {
 }
 
 if (!eventStore.currentEvent && eventId) {
-  eventStore.currentEvent = { id: String(eventId) } // Ensure string
+  eventStore.currentEvent = { id: String(eventId) }
 }
 
-// 🔹 Fetch startup name directly from the event's subcollection
+// 🔹 Fetch startup name and questions
 onMounted(async () => {
   if (!eventId || !startupId) {
     Notify.create({ message: 'Missing event or startup info', color: 'negative' })
@@ -182,6 +199,10 @@ onMounted(async () => {
     return
   }
 
+  // ✅ Fetch questions from composable
+  await fetchQuestions(eventId)
+
+  // Fetch startup info
   try {
     const startupRef = doc(db, `events/${String(eventId)}/startups/${String(startupId)}`)
     const startupSnap = await getDoc(startupRef)
@@ -189,7 +210,6 @@ onMounted(async () => {
     if (startupSnap.exists()) {
       startup.value = { id: startupSnap.id, ...startupSnap.data() }
     } else {
-      // fallback (should rarely happen)
       startup.value = { id: startupId, name: 'Unknown Startup' }
     }
   } catch (err) {
