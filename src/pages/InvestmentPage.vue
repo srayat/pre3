@@ -295,7 +295,7 @@ watch(eventStatus, (newVal) => {
     rgba(12, 12, 105, 1) 57%,
     rgba(21, 121, 179, 1) 100%
   );
-  border-radius: 20px;
+  border-radius: 12px;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
 }
 </style>

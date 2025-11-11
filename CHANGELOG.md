@@ -1,3 +1,9 @@
+# v0.2.2
+
+- Current
+- Fixed the invest button bug
+- Results in works
+
 # v0.2.1
 
 - Ratings Questions from Firestore now

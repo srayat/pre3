@@ -46,7 +46,9 @@
           color="blue-7"
           label="Invest"
           unelevated
-          :disable="disabled || localAmount <= 0"
+          :disable="
+            disabled || localAmount === null || localAmount === undefined || localAmount === ''
+          "
           @click="commitChange"
         />
       </div>
