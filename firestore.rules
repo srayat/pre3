@@ -71,7 +71,7 @@ service cloud.firestore {
         allow read: if isEventHost(eventId);
         // Users can only write their own ratings
         allow write: if isSignedIn() && request.resource.data.userId == request.auth.uid
-        && get(/databases/$(database)/documents/events/$(eventId)).data.status == 'live';;
+        && get(/databases/$(database)/documents/events/$(eventId)).data.status == 'live';
       }
 
       match /investments/{investmentId} {
@@ -79,10 +79,11 @@ service cloud.firestore {
         allow read: if isSignedIn() && request.auth.uid == resource.data.userId;
         // Host can read all investments in their event
         allow read: if isEventHost(eventId);
-        // Users can create/update their own investments
+        // Users can create/update their own investments ONLY when event is live
         allow create, update: if isSignedIn()
           && request.resource.data.userId == request.auth.uid
-          && (request.resource.data.eventId == eventId || request.resource.data.eventId == int(eventId));
+          && (request.resource.data.eventId == eventId || request.resource.data.eventId == int(eventId))
+          && get(/databases/$(database)/documents/events/$(eventId)).data.status == 'live';
         allow delete: if isEventHost(eventId);
       }
 

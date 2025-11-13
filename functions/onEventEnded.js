@@ -99,13 +99,13 @@ exports.onEventEnded = onDocumentUpdated('events/{eventId}', async (event) => {
     const resultsRef = db.collection(`events/${eventId}/results`)
     await Promise.all([
       resultsRef.doc('investmentLeaderboard').set({
-        title: 'Investment Leaderboard',
+        title: 'Startup Leaderboard by PreMoney Raised',
         metric: 'investment',
         leaderboard: investmentLeaderboard,
         generatedAt: admin.firestore.FieldValue.serverTimestamp(),
       }),
       resultsRef.doc('ratingLeaderboard').set({
-        title: 'Rating Leaderboard',
+        title: 'Startup Leaderboard by Rating Points',
         metric: 'rating',
         leaderboard: ratingLeaderboard,
         generatedAt: admin.firestore.FieldValue.serverTimestamp(),

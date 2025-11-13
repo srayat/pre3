@@ -105,16 +105,23 @@
             </div>
 
             <div v-else-if="resultsStatus === 'ready' && resultsData" class="results-content">
-              <q-card flat bordered class="q-pa-lg q-mb-md">
-                <div class="text-h6 text-center text-primary">{{ eventData.name }} - Results</div>
+              <q-card flat bordered class="results-header-card q-pa-md q-mb-md">
+                <div class="results-header-content text-center">
+                  <div class="results-title">
+                    {{ eventData.name }}
+                  </div>
+                  <div class="results-subtitle">Results Summary</div>
+                </div>
               </q-card>
 
               <div class="leaderboards-grid">
                 <LeaderboardCard
+                  class="q-mt-lg"
                   v-if="resultsData.investmentLeaderboard"
                   :data="resultsData.investmentLeaderboard"
                 />
                 <LeaderboardCard
+                  class="q-mt-lg"
                   v-if="resultsData.ratingLeaderboard"
                   :data="resultsData.ratingLeaderboard"
                 />
@@ -324,5 +331,66 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 1rem;
+}
+
+.results-header-card {
+  background: linear-gradient(160deg, #0b1d3a, #133a68, #1c4d8c);
+  border-radius: 9px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: white;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Soft light overlay for subtle dimension */
+.results-header-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle at top right, rgba(255, 255, 255, 0.08), transparent 60%);
+  pointer-events: none;
+}
+
+/* Inner content */
+.results-header-content {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  padding: 1.25rem 0;
+}
+
+/* Title */
+.results-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  background: linear-gradient(90deg, #fdd835, #ffffff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Subtitle */
+.results-subtitle {
+  margin-top: 4px;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.8);
+  letter-spacing: 0.3px;
+}
+
+/* Optional: glowing edge effect */
+.results-header-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 9px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  box-shadow: inset 0 0 12px rgba(255, 255, 255, 0.08);
+  pointer-events: none;
 }
 </style>
