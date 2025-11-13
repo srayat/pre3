@@ -1,3 +1,41 @@
+# v0.2.8
+
+- Fixed the post-ended Investment issue
+- Fixed the redirect from Investment page to Results page on ended
+- Fixed the Security Rules - to investment and ratings checking for status = ended
+
+# v0.2.7
+
+- Fixed the Access to Investment page - only signed in and joined users
+
+# v0.2.6
+
+- Updated MyEventsPage to show both hosted AND participated events
+- Fixed the live section of Event page
+- Security rules revised - tightened
+- Created proper access control for EventPage based on user role
+- Setup redirects: Participants → Investment page, Visitors → Home
+- Fixed the flash issue with proper loading state
+- Added role: 'investor' to Cloud Function
+
+# v0.2.5
+
+- Coin image size rezized on landing page
+- Investment page colors redesigned
+
+# v0.2.4
+
+- Added an allowlist of users
+- Added Premoney Coin to Landing Page
+
+# v0.2.3
+
+- Current
+- Cloud Function - Results - Working for Investors
+- Judge role to be developed
+- Bug Reporting added
+- All Event functionality on single smart page
+
 # v0.2.2
 
 - Current

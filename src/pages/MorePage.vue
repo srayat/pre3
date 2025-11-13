@@ -1,5 +1,5 @@
 <template>
-  <q-page class="more-page column q-pa-lg">
+  <q-page class="more-page column q-pa-lg bg-blue-grey-1">
     <div class="text-h5 text-weight-bold text-primary q-pt-lg">More</div>
     <div class="text-body1 text-grey-7 q-mb-lg">Quick actions and settings.</div>
 
@@ -23,17 +23,42 @@
         </q-item>
       </q-list>
     </q-card>
+
+    <!-- Add Bug Report Button -->
+    <q-list flat bordered class="actions-card q-mt-xl bg-white">
+      <q-item clickable @click="showBugReportDialog = true">
+        <q-item-section avatar>
+          <q-icon name="bug_report" color="negative" />
+        </q-item-section>
+        <q-item-section>
+          <q-item-label class="text-weight-medium text-subtitle1 q-pt-sm"
+            >Report a Bug</q-item-label
+          >
+          <q-item-label class="text-subtitle2 text-grey-7 q-pb-sm"
+            >Help us improve your experience</q-item-label
+          >
+        </q-item-section>
+        <q-item-section side>
+          <q-icon name="chevron_right" color="grey-5" />
+        </q-item-section>
+      </q-item>
+    </q-list>
+
+    <!-- Bug Report Dialog -->
+    <BugReportDialog v-model="showBugReportDialog" />
   </q-page>
 </template>
 
 <script setup>
-import { onMounted, onBeforeUnmount } from 'vue'
+import { ref, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
 import { useQuasar } from 'quasar'
 import { onAuthStateChanged, signOut } from 'firebase/auth'
 import { auth, db } from 'boot/firebase'
 import { doc, getDoc } from 'firebase/firestore'
+import BugReportDialog from 'components/BugReportDialog.vue'
 
+const showBugReportDialog = ref(false)
 const router = useRouter()
 const $q = useQuasar()
 
@@ -123,7 +148,7 @@ async function handleCreateEvent() {
     const snapshot = await getDoc(userDocRef)
     const eventBalance = snapshot.data()?.hostingAccount?.eventBalance ?? 0
 
-    if (eventBalance > 0) {
+    if (eventBalance >= 0) {
       await router.push('/events/new')
       return
     }
@@ -161,7 +186,6 @@ async function handleCreateEvent() {
 }
 
 .actions-card {
-  border-radius: 18px;
-  box-shadow: 0 14px 32px rgba(15, 35, 95, 0.12);
+  border-radius: 8px;
 }
 </style>

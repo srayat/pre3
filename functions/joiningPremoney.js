@@ -83,6 +83,7 @@ exports.joiningPremoney = onCall(async (request) => {
       startingBalance,
       currentBalance: startingBalance,
       totalInvested: 0,
+      role: 'investor',
     }
     batch.set(investorRef, investorData)
 

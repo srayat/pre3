@@ -75,11 +75,6 @@ const routes = [
         component: () => import('pages/EventCreatePage.vue'),
         meta: { requiresAuth: true, hideBottomNav: true },
       },
-      {
-        path: 'events/:eventId',
-        component: () => import('pages/EventManagePage.vue'),
-        meta: { requiresAuth: true, hideBottomNav: true },
-      },
 
       // ========== OTHER PAGES ==========
 
@@ -111,6 +106,11 @@ const routes = [
       {
         path: '/account-summary-demo',
         component: () => import('pages/AccountSummaryDemo.vue'),
+      },
+      {
+        path: '/events/:eventId',
+        component: () => import('pages/EventPage.vue'),
+        meta: { requiresAuth: true, hideBottomNav: true },
       },
     ],
   },

@@ -29,6 +29,7 @@ exports.helloWorld = require('./helloWorld').helloWorld
 exports.logStartupNameChange = require('./logStartupNameChange').logStartupNameChange
 exports.onEventCreated = require('./onEventCreated').onEventCreated
 exports.joiningPremoney = require('./joiningPremoney').joiningPremoney
+exports.onEventEnded = require('./onEventEnded').onEventEnded
 
 // ✅ Export v2 callable functions
 exports.getHostEvents = onCall({ cors: true }, getHostEvents)

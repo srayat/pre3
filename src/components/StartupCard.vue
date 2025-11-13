@@ -19,7 +19,7 @@
     <div class="row items-center justify-between">
       <!-- ⭐ Rating Button -->
       <q-btn
-        :color="isRated ? 'grey-5' : 'blue-7'"
+        :color="isRated ? 'grey-5' : 'blue-grey-8'"
         :icon="isRated ? 'star' : 'star_border'"
         @click="openRatingPage"
         unelevated
@@ -43,7 +43,7 @@
           @keyup.enter="commitChange"
         />
         <q-btn
-          color="blue-7"
+          color="blue-grey-8"
           label="Invest"
           unelevated
           :disable="
@@ -97,6 +97,7 @@ const openRatingPage = () => {
 <style scoped>
 .startup-card {
   transition: transform 0.2s ease-in-out;
+  background: #fff;
 }
 
 .startup-card:hover {

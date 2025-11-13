@@ -1,7 +1,11 @@
 <template>
   <q-page class="landing-page column items-center justify-center text-white">
     <div class="splash">
-      <img :src="logoUrl" alt="Pre3 Logo" class="logo-image" />
+      <img :src="premoneycoin" alt="Premoney Coin" class="logo-image" />
+    </div>
+
+    <div class="splash">
+      <img :src="logoUrl" alt="Pre3 Logo" class="logo-image q-mt-xl" />
     </div>
     <div class="text-body1 splash-subtitle">Gamified Startup Investing</div>
     <q-btn
@@ -18,6 +22,7 @@
 <script setup>
 import { useRouter } from 'vue-router'
 import logoUrl from 'assets/logo_small_white.png'
+import premoneycoin from 'assets/premoney-coin-250x250.png'
 
 const router = useRouter()
 

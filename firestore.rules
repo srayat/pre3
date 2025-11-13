@@ -14,7 +14,7 @@ service cloud.firestore {
 
     // ✅ FIXED: Collection group rule for ratings
     match /{path=**}/startups/{startupId}/ratings/{userId} {
-      allow read: if isSignedIn();
+      allow read: if isSignedIn() && request.auth.uid == userId;
       allow write: if isSignedIn() && request.auth.uid == userId;
     }
 
@@ -40,7 +40,11 @@ service cloud.firestore {
         allow create, update, delete: if isEventHost(eventId);
 
         match /ratings/{userId} {
-          allow read: if isSignedIn();
+          // Users can only read their own ratings
+          allow read: if isSignedIn() && request.auth.uid == userId;
+          // Host can read all ratings in their event
+          allow read: if isEventHost(eventId);
+          // Users can only write their own ratings
           allow write: if isSignedIn() && request.auth.uid == userId;
         }
       }
@@ -51,17 +55,31 @@ service cloud.firestore {
       }
 
       match /investors/{userId} {
-        allow read: if isSignedIn();
-        allow create, update: if isSignedIn() && request.auth.uid == userId;
+        // Users can only read their own investor record
+        allow read: if isSignedIn() && request.auth.uid == userId;
+        // Host can read all investors in their event
+        allow read: if isEventHost(eventId);
+        // Users can create/update their own record
+        allow create, update: if isSignedIn() && request.auth.uid == userId
+        && get(/databases/$(database)/documents/events/$(eventId)).data.status == 'live';
       }
 
       match /ratings/{ratingId} {
-        allow read: if isSignedIn();
-        allow write: if isSignedIn();
+        // Users can only read their own ratings
+        allow read: if isSignedIn() && request.auth.uid == resource.data.userId;
+        // Host can read all ratings
+        allow read: if isEventHost(eventId);
+        // Users can only write their own ratings
+        allow write: if isSignedIn() && request.resource.data.userId == request.auth.uid
+        && get(/databases/$(database)/documents/events/$(eventId)).data.status == 'live';;
       }
 
       match /investments/{investmentId} {
-        allow read: if isSignedIn();
+        // Users can only read their own investments
+        allow read: if isSignedIn() && request.auth.uid == resource.data.userId;
+        // Host can read all investments in their event
+        allow read: if isEventHost(eventId);
+        // Users can create/update their own investments
         allow create, update: if isSignedIn()
           && request.resource.data.userId == request.auth.uid
           && (request.resource.data.eventId == eventId || request.resource.data.eventId == int(eventId));
@@ -69,7 +87,11 @@ service cloud.firestore {
       }
 
       match /feedback/{feedbackId} {
-        allow read: if isSignedIn();
+        // Users can only read their own feedback
+        allow read: if isSignedIn() && request.auth.uid == resource.data.userId;
+        // Host can read all feedback
+        allow read: if isEventHost(eventId);
+        // Users can create/update their own feedback
         allow create, update: if isSignedIn()
           && request.resource.data.userId == request.auth.uid
           && (request.resource.data.eventId == eventId || request.resource.data.eventId == int(eventId));
@@ -82,9 +104,45 @@ service cloud.firestore {
         allow delete: if isSignedIn() && request.auth.uid == resource.data.userUid;
       }
 
-      match /{document=**} {
-        allow read: if isSignedIn();
-      }
+      // Remove the wildcard rule - be explicit instead
+      // match /{document=**} {
+      //   allow read: if isSignedIn();
+      // }
     }
+    
+    // Results 
+    match /events/{eventId}/results/{docId} {
+        function getEvent() {
+          return get(/databases/$(database)/documents/events/$(eventId));
+        }
+        
+        function areResultsReady() {
+          let event = getEvent();
+          return event != null && event.data.resultsReady == true;
+        }
+        
+        // Only authenticated users can read, and only when results are ready
+        allow read: if request.auth != null && areResultsReady();
+        
+        // Only Cloud Functions can write
+        allow write: if false;
+    }
+
+    // Bug Reports
+    match /bugReports/{reportId} {
+      allow create: if request.auth != null
+                    && request.resource.data.userId == request.auth.uid
+                    && request.resource.data.status == 'new';
+      
+      allow read: if request.auth != null 
+                 && resource.data.userId == request.auth.uid;
+      
+      allow update: if request.auth != null 
+                    && resource.data.userId == request.auth.uid
+                    && request.resource.data.userId == resource.data.userId;
+      
+      allow delete: if false;
+    }
+
   }
 }

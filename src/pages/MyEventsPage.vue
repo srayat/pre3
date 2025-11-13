@@ -69,7 +69,6 @@
 </template>
 
 <script setup>
-
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { collection, doc, getDoc, getDocs } from 'firebase/firestore'
@@ -89,16 +88,19 @@ function statusColorClass(status) {
   return 'text-grey-6'
 }
 
-async function fetchEvents(uid) {
+async function fetchEvents(userId) {
   try {
-    const hostedRef = collection(db, `users/${uid}/hostedEvents`)
-    const hostedSnap = await getDocs(hostedRef)
     const eventsList = []
+
+    // ========== 1. Fetch HOSTED events ==========
+    const hostedRef = collection(db, `users/${userId}/hostedEvents`)
+    const hostedSnap = await getDocs(hostedRef)
 
     for (const hostedDoc of hostedSnap.docs) {
       const eventId = hostedDoc.id
       const eventRef = doc(db, 'events', eventId)
       const eventSnap = await getDoc(eventRef)
+
       if (eventSnap.exists()) {
         const data = eventSnap.data()
         eventsList.push({
@@ -107,12 +109,51 @@ async function fetchEvents(uid) {
           status: data.status || 'setup',
           statusLabel: data.status || 'Setup',
           roleLabel: 'Host',
-          displayDate: data.date
-            ? new Date(data.date).toLocaleDateString()
-            : 'Date TBD',
+          displayDate: data.date ? new Date(data.date).toLocaleDateString() : 'Date TBD',
+          sortOrder: getSortOrder(data.status),
         })
       }
     }
+
+    // ========== 2. Fetch PARTICIPATED events ==========
+    const eventsRef = collection(db, 'events')
+    const allEventsSnap = await getDocs(eventsRef)
+
+    const participantChecks = allEventsSnap.docs.map(async (eventDoc) => {
+      const eventId = eventDoc.id
+
+      // Check if user is an investor in this event
+      const investorRef = doc(db, `events/${eventId}/investors`, userId)
+      const investorSnap = await getDoc(investorRef)
+
+      if (investorSnap.exists()) {
+        const eventData = eventDoc.data()
+
+        // Don't add if already in list as host
+        const alreadyAdded = eventsList.some((e) => e.id === eventId)
+
+        if (!alreadyAdded) {
+          return {
+            id: eventId,
+            name: eventData.name || 'Untitled Event',
+            status: eventData.status || 'setup',
+            statusLabel: eventData.status || 'Setup',
+            roleLabel: 'Investor',
+            displayDate: eventData.date
+              ? new Date(eventData.date).toLocaleDateString()
+              : 'Date TBD',
+            sortOrder: getSortOrder(eventData.status),
+          }
+        }
+      }
+      return null
+    })
+
+    const participatedEvents = (await Promise.all(participantChecks)).filter((e) => e !== null)
+    eventsList.push(...participatedEvents)
+
+    // Sort by status priority: live > setup > ended
+    eventsList.sort((a, b) => a.sortOrder - b.sortOrder)
 
     events.value = eventsList
   } catch (error) {
@@ -123,6 +164,16 @@ async function fetchEvents(uid) {
   }
 }
 
+// Helper function to determine sort order
+function getSortOrder(status) {
+  const order = {
+    live: 0,
+    setup: 1,
+    ended: 2,
+  }
+  return order[status] ?? 3
+}
+
 function handlePrimaryAction(event) {
   if (!event || !event.id) return
   router.push(`/events/${event.id}`)
@@ -130,7 +181,8 @@ function handlePrimaryAction(event) {
 
 onMounted(() => {
   onAuthStateChanged(auth, (user) => {
-    if (user) fetchEvents(user.uid)
+    if (user)
+      fetchEvents(user.uid) // ← This user.uid is Firebase's ID
     else router.replace('/sign-in')
   })
 })
@@ -153,7 +205,9 @@ onMounted(() => {
   box-shadow: 0 18px 32px rgba(15, 35, 95, 0.08);
   padding: 18px;
   cursor: pointer;
-  transition: transform 0.1s ease, box-shadow 0.2s ease;
+  transition:
+    transform 0.1s ease,
+    box-shadow 0.2s ease;
 }
 .event-card:hover {
   box-shadow: 0 18px 40px rgba(15, 35, 95, 0.15);

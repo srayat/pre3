@@ -19,8 +19,10 @@
       <div class="onboarding-content text-center" style="max-width: 600px">
         <!-- Step 1: Congratulations -->
         <div v-if="currentStep === 0" class="column items-center">
-          <q-icon name="celebration" size="80px" color="positive" class="q-mb-lg" />
-          <div class="text-h4 text-weight-bold q-mb-md">Congratulations! 🎉</div>
+          <div class="flex flex-center event-onboarding-coin">
+            <img :src="premoneycoin" alt="Premoney Coin" />
+          </div>
+          <div class="text-h4 text-weight-bold q-mb-md q-mt-lg">Congratulations!</div>
           <div class="text-h6 text-grey-8 q-mb-lg">
             You've received <span class="text-positive text-weight-bold">10,000 PreMoney</span>
           </div>
@@ -51,14 +53,13 @@
           <q-icon name="rule" size="80px" color="orange" class="q-mb-lg" />
           <div class="text-h4 text-weight-bold q-mb-md">Rules</div>
           <div class="text-left">
-            <ul class="q-pl-md">
+            <ul class="text-body1 q-pl-md">
               <li class="q-mb-sm">You start with 10,000 PreMoney for the event</li>
               <li class="q-mb-sm">Invest in any startup listed in the event</li>
               <li class="q-mb-sm">
                 You can change your investments anytime till event closes on the app
               </li>
               <li class="q-mb-sm">Your max-limit is 10,000 for the event</li>
-              <li class="q-mb-sm">Event ends on {{ eventEndDate }}</li>
               <li>Have fun and learn about startup investing!</li>
             </ul>
           </div>
@@ -100,6 +101,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useEventStore } from 'stores/event-store'
 import { useRouter } from 'vue-router'
+import premoneycoin from 'src/assets/premoney-coin-250x250.png'
 
 export default {
   name: 'EventOnboarding',
@@ -152,6 +154,7 @@ export default {
       eventEndDate,
       nextStep,
       previousStep,
+      premoneycoin,
     }
   },
 
@@ -163,3 +166,11 @@ export default {
   },
 }
 </script>
+
+<style scoped>
+.event-onboarding-coin img {
+  width: 200px;
+  height: 200px;
+  object-fit: cover; /* keeps proportions, fills the square */
+}
+</style>

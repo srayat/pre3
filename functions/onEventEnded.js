@@ -23,6 +23,10 @@ exports.onEventEnded = onDocumentUpdated('events/{eventId}', async (event) => {
       db.collection(`events/${eventId}/startups`).get(),
     ])
 
+    logger.info(
+      `📊 Found: ${investmentsSnap.size} investments, ${ratingsSnap.size} ratings, ${startupsSnap.size} startups`,
+    )
+
     // Build startup name lookup
     const startups = {}
     startupsSnap.forEach((s) => {
@@ -32,31 +36,47 @@ exports.onEventEnded = onDocumentUpdated('events/{eventId}', async (event) => {
       }
     })
 
+    logger.info(`📝 Startup names: ${Object.keys(startups).length}`)
+
     // Initialize aggregation objects
-    const investTotals = { investor: {}, judge: {} }
-    const ratingTotals = { investor: {}, judge: {} }
+    const investTotals = {}
+    const ratingTotals = {}
+    const ratingCounts = {} // Track number of ratings per startup
 
     // --- 🔹 Aggregate Investments ---
     investmentsSnap.forEach((doc) => {
       const d = doc.data()
-      if (!d.startupId || !d.amount || !d.role) return
-      if (d.role !== 'judge' && d.role !== 'investor') return
 
-      investTotals[d.role][d.startupId] = (investTotals[d.role][d.startupId] || 0) + d.amount
+      // Use your actual field names: investedPM and startupId
+      if (!d.startupId || !d.investedPM) {
+        logger.warn(`⚠️ Skipping investment doc ${doc.id}: missing startupId or investedPM`)
+        return
+      }
+
+      investTotals[d.startupId] = (investTotals[d.startupId] || 0) + d.investedPM
+
+      logger.info(`💰 Investment: ${d.startupId} += ${d.investedPM}`)
     })
 
     // --- 🔹 Aggregate Ratings ---
     ratingsSnap.forEach((doc) => {
       const d = doc.data()
-      if (!d.startupId || !d.rating || !d.role) return
-      if (d.role !== 'judge' && d.role !== 'investor') return
 
-      ratingTotals[d.role][d.startupId] = (ratingTotals[d.role][d.startupId] || 0) + d.rating
+      // Use your actual field names: totalScore and startupId
+      if (!d.startupId || d.totalScore === undefined) {
+        logger.warn(`⚠️ Skipping rating doc ${doc.id}: missing startupId or totalScore`)
+        return
+      }
+
+      ratingTotals[d.startupId] = (ratingTotals[d.startupId] || 0) + d.totalScore
+      ratingCounts[d.startupId] = (ratingCounts[d.startupId] || 0) + 1
+
+      logger.info(`⭐ Rating: ${d.startupId} += ${d.totalScore}`)
     })
 
     // --- 🔹 Build Leaderboards ---
-    const makeLeaderboard = (totals, role, metricLabel) =>
-      Object.entries(totals[role])
+    const makeLeaderboard = (totals, metricLabel) =>
+      Object.entries(totals)
         .map(([startupId, total]) => ({
           startupId,
           name: startups[startupId]?.name || 'Unknown',
@@ -67,50 +87,52 @@ exports.onEventEnded = onDocumentUpdated('events/{eventId}', async (event) => {
           rank: i + 1,
           ...entry,
           metric: metricLabel,
-          role,
         }))
 
-    const startupInvestmentInvestor = makeLeaderboard(investTotals, 'investor', 'investment')
-    const startupInvestmentJudge = makeLeaderboard(investTotals, 'judge', 'investment')
-    const startupRatingInvestor = makeLeaderboard(ratingTotals, 'investor', 'rating')
-    const startupRatingJudge = makeLeaderboard(ratingTotals, 'judge', 'rating')
+    const investmentLeaderboard = makeLeaderboard(investTotals, 'investment')
+    const ratingLeaderboard = makeLeaderboard(ratingTotals, 'rating')
+
+    logger.info(`📊 Investment leaderboard: ${investmentLeaderboard.length} entries`)
+    logger.info(`📊 Rating leaderboard: ${ratingLeaderboard.length} entries`)
 
     // --- 🔹 Write Results ---
     const resultsRef = db.collection(`events/${eventId}/results`)
     await Promise.all([
-      resultsRef.doc('startupInvestmentInvestor').set({
-        title: 'Startup Leaderboard – Investor Investment',
+      resultsRef.doc('investmentLeaderboard').set({
+        title: 'Investment Leaderboard',
         metric: 'investment',
-        role: 'investor',
-        leaderboard: startupInvestmentInvestor,
+        leaderboard: investmentLeaderboard,
         generatedAt: admin.firestore.FieldValue.serverTimestamp(),
       }),
-      resultsRef.doc('startupInvestmentJudge').set({
-        title: 'Startup Leaderboard – Judge Investment',
-        metric: 'investment',
-        role: 'judge',
-        leaderboard: startupInvestmentJudge,
-        generatedAt: admin.firestore.FieldValue.serverTimestamp(),
-      }),
-      resultsRef.doc('startupRatingInvestor').set({
-        title: 'Startup Leaderboard – Investor Ratings',
+      resultsRef.doc('ratingLeaderboard').set({
+        title: 'Rating Leaderboard',
         metric: 'rating',
-        role: 'investor',
-        leaderboard: startupRatingInvestor,
-        generatedAt: admin.firestore.FieldValue.serverTimestamp(),
-      }),
-      resultsRef.doc('startupRatingJudge').set({
-        title: 'Startup Leaderboard – Judge Ratings',
-        metric: 'rating',
-        role: 'judge',
-        leaderboard: startupRatingJudge,
+        leaderboard: ratingLeaderboard,
         generatedAt: admin.firestore.FieldValue.serverTimestamp(),
       }),
     ])
 
-    logger.info(`✅ Results computed for event ${eventId}`)
+    // ✨ Set resultsReady flag after all results are written
+    await db.collection('events').doc(eventId).update({
+      resultsReady: true,
+      resultsGeneratedAt: admin.firestore.FieldValue.serverTimestamp(),
+    })
+
+    logger.info(`✅ Results computed and ready for event ${eventId}`)
   } catch (error) {
     logger.error(`❌ Failed to compute results for event ${eventId}:`, error)
+
+    // Mark results as failed
+    await db
+      .collection('events')
+      .doc(eventId)
+      .update({
+        resultsReady: false,
+        resultsError: error.message,
+        resultsGeneratedAt: admin.firestore.FieldValue.serverTimestamp(),
+      })
+      .catch((err) => logger.error('Failed to update error status:', err))
+
     throw error
   }
 })

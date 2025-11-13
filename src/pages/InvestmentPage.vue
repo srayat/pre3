@@ -1,8 +1,18 @@
 <template>
-  <q-page class="q-pa-md">
-    <!-- 🌀 Loading State -->
+  <q-page class="q-pa-md bg-blue-grey-1">
+    <!-- 🌀 Auth & Access Check -->
     <div
-      v-if="eventStatus === 'loading'"
+      v-if="authChecking"
+      class="flex flex-center column q-mt-xl text-center"
+      style="min-height: 60vh"
+    >
+      <q-spinner size="48px" color="primary" />
+      <div class="text-subtitle1 q-mt-md text-grey-7">Verifying access...</div>
+    </div>
+
+    <!-- 🌀 Loading Event Data -->
+    <div
+      v-else-if="eventStatus === 'loading'"
       class="flex flex-center column q-mt-xl text-center"
       style="min-height: 60vh"
     >
@@ -119,7 +129,8 @@ import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useQuasar } from 'quasar'
 import { doc, getDoc, collection, onSnapshot, getDocs } from 'firebase/firestore'
-import { db } from 'boot/firebase'
+import { auth, db } from 'boot/firebase'
+import { onAuthStateChanged } from 'firebase/auth'
 import StartupCard from 'components/StartupCard.vue'
 import EventOnboarding from 'components/EventOnboarding.vue'
 import { useInvestments } from 'src/composables/useInvestments'
@@ -138,16 +149,80 @@ const eventData = ref(null)
 const loading = ref(false)
 const error = ref('')
 const unsubscribe = ref(null)
+const authChecking = ref(true) // ← NEW: Track auth check
+
 const { ratedStartups } = useRatings(eventId)
 const isStartupRated = (startupId) => {
   return ratedStartups.value?.has(startupId) || false
 }
 
-// 🔹 Load investment composable (pass eventId directly)
 const { totalAllocated, investments, remainingBalance, updateInvestment } = useInvestments(eventId)
 
-// 🔹 Event status check
 const isLive = computed(() => eventData.value?.status === 'live')
+
+// ✅ NEW: Check if user is a participant
+async function checkParticipantStatus(eventIdParam, userId) {
+  try {
+    const investorRef = doc(db, `events/${eventIdParam}/investors`, userId)
+    const investorSnap = await getDoc(investorRef)
+    return investorSnap.exists()
+  } catch (error) {
+    console.error('Error checking participant status:', error)
+    return false
+  }
+}
+
+// ✅ UPDATED: Check auth and participant status BEFORE loading event
+async function checkAccessAndLoadEvent() {
+  authChecking.value = true
+
+  // Wait for auth to be ready
+  const currentUser = await new Promise((resolve) => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      unsubscribe()
+      resolve(user)
+    })
+  })
+
+  // 1. Check if user is signed in
+  if (!currentUser) {
+    console.log('❌ User not signed in, redirecting to sign-in')
+    authChecking.value = false
+    $q.notify({
+      type: 'warning',
+      message: 'Please sign in to access this event',
+      timeout: 2000,
+    })
+    router.replace('/sign-in')
+    return
+  }
+
+  // 2. Check if user has joined the event
+  if (!eventId.value) {
+    authChecking.value = false
+    router.push('/home')
+    return
+  }
+
+  const isParticipant = await checkParticipantStatus(eventId.value, currentUser.uid)
+
+  if (!isParticipant) {
+    console.log('❌ User has not joined this event, redirecting to home')
+    authChecking.value = false
+    $q.notify({
+      type: 'warning',
+      message: 'Please join the event first',
+      timeout: 2000,
+    })
+    router.replace('/home')
+    return
+  }
+
+  // 3. User is authorized, load the event
+  console.log('✅ User authorized, loading event')
+  authChecking.value = false
+  await loadEvent()
+}
 
 // 🔹 Fetch event details
 async function loadEvent() {
@@ -178,7 +253,6 @@ async function loadEvent() {
     eventData.value = { id: eventId.value, ...data }
     eventStatus.value = data.status || 'setup'
 
-    // Store in localStorage (fixed - store the value, not the ref)
     localStorage.setItem('currentEventId', eventId.value)
 
     // 🚦 Handle status
@@ -194,8 +268,17 @@ async function loadEvent() {
     }
 
     if (data.status === 'ended') {
-      console.log('Event ended — showing static data')
-      await loadStartups(eventId.value, 'ended')
+      console.log('Event ended — redirecting to results')
+      // Don't load startups, just redirect
+      $q.notify({
+        type: 'info',
+        message: 'Event has ended! Viewing results...',
+        timeout: 2000,
+        icon: 'celebration',
+      })
+      setTimeout(() => {
+        router.replace(`/events/${eventId.value}`)
+      }, 2000)
       return
     }
 
@@ -252,8 +335,8 @@ async function loadStartups(eventIdParam, status) {
   }
 }
 
-// 🔄 Lifecycle
-onMounted(loadEvent)
+// 🔄 Lifecycle - CHANGED: Use new auth check function
+onMounted(checkAccessAndLoadEvent)
 
 onUnmounted(() => {
   if (unsubscribe.value) {
@@ -288,14 +371,10 @@ watch(eventStatus, (newVal) => {
 }
 
 .gradient-card {
-  background: #060421;
-  background: linear-gradient(
-    148deg,
-    rgba(6, 4, 33, 1) 0%,
-    rgba(12, 12, 105, 1) 57%,
-    rgba(21, 121, 179, 1) 100%
-  );
   border-radius: 12px;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+  background: radial-gradient(circle at top left, #5f738c, #2f3b47 60%);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 </style>
