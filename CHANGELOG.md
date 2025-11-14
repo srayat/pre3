@@ -1,3 +1,15 @@
+# v0.3.0
+
+- Current
+- Corrected the event status typo in the email notification sent onEventCreated
+- Created new-user email notification to admin
+-
+
+# v0.2.9
+
+- Made the Leaderboards and Results page prettier
+- Cloud function to change the title of Leaderboards
+
 # v0.2.8
 
 - Fixed the post-ended Investment issue
