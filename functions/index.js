@@ -2,7 +2,6 @@
  * Firebase Functions Entry Point
  */
 
-const { setGlobalOptions } = require('firebase-functions')
 const { onCall } = require('firebase-functions/v2/https')
 
 // ✅ Initialize Firebase Admin SDK FIRST
@@ -19,9 +18,6 @@ const { createStartup } = require('./createStartup')
 const { updateStartup } = require('./updateStartup')
 const { deleteStartup } = require('./deleteStartup')
 
-// Optional global options for cost control
-setGlobalOptions({ maxInstances: 10 })
-
 // ✅ Export modular functions (v1 style)
 exports.reservePersonByEmail = require('./reservePersonByEmail').reservePersonByEmail
 exports.linkUserToPerson = require('./onUserCreate').linkUserToPerson
@@ -30,6 +26,8 @@ exports.logStartupNameChange = require('./logStartupNameChange').logStartupNameC
 exports.onEventCreated = require('./onEventCreated').onEventCreated
 exports.joiningPremoney = require('./joiningPremoney').joiningPremoney
 exports.onEventEnded = require('./onEventEnded').onEventEnded
+exports.notifyOnUserCreate = require('./notifyOnUserCreate').notifyOnUserCreate
+exports.testNotifications = require('./testNotifications').testNotifications
 
 // ✅ Export v2 callable functions
 exports.getHostEvents = onCall({ cors: true }, getHostEvents)

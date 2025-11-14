@@ -59,7 +59,7 @@ exports.onEventCreated = onDocumentCreated(
         to: hostEmail,
         bcc: 'sarbjeet.rayat@gmail.com',
         from: 'noreply@premoney.com',
-        subject: `Your event "${name}" is live!`,
+        subject: `Your event "${name}" has been created!`,
         html: `
     <div style="font-family: Arial, sans-serif; padding: 20px;">
       <h2 style="color: #007bff;">Event Created Successfully</h2>
