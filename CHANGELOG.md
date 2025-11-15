@@ -1,6 +1,9 @@
+# v0.3.1
+
+- Notifications Emails: on event created, live, ended
+
 # v0.3.0
 
-- Current
 - Corrected the event status typo in the email notification sent onEventCreated
 - Created new-user email notification to admin
 -

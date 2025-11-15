@@ -1,6 +1,6 @@
 'use strict'
 
-const { onDocumentCreated } = require('firebase-functions/v2/firestore')
+const { onDocumentUpdated } = require('firebase-functions/v2/firestore')
 const { getFirestore, FieldValue } = require('firebase-admin/firestore')
 const { defineSecret } = require('firebase-functions/params')
 const sgMail = require('@sendgrid/mail')
@@ -8,13 +8,23 @@ const sgMail = require('@sendgrid/mail')
 const db = getFirestore()
 const sendgridApiKey = defineSecret('SENDGRID_API_KEY')
 
-exports.onEventCreated = onDocumentCreated(
+exports.notifyOnEventEnded = onDocumentUpdated(
   { document: 'events/{eventId}', secrets: [sendgridApiKey] },
   async (event) => {
-    const data = event.data.data()
-    if (!data) return
+    // ✅ Get before and after data
+    const beforeData = event.data.before.data()
+    const afterData = event.data.after.data()
 
-    const { hostUid, hostEmail, name } = data
+    // Only trigger when event status changes to "ended"
+    if (!beforeData || !afterData) return
+
+    // ✅ Only trigger if status changed from 'live' to 'ended'
+    if (beforeData.status !== 'live' || afterData.status !== 'ended') {
+      console.log(`⏭️ Skipping - status change was ${beforeData.status} → ${afterData.status}`)
+      return
+    }
+
+    const { hostUid, hostEmail, name } = afterData
     const eventId = event.params.eventId
 
     if (!hostUid || !hostEmail) {
@@ -24,9 +34,9 @@ exports.onEventCreated = onDocumentCreated(
 
     // 🔹 Create notification object
     const notification = {
-      type: 'event_created',
-      title: 'Event Created Successfully',
-      message: `Your event "${name}" (Code: ${eventId}) has been created.`,
+      type: 'event_ended',
+      title: 'Event has ended',
+      message: `Your event "${name}" (Code: ${eventId}) has ended`,
       eventId,
       read: false,
       createdAt: FieldValue.serverTimestamp(),
@@ -57,19 +67,16 @@ exports.onEventCreated = onDocumentCreated(
       sgMail.setApiKey(sendgridApiKey.value())
       await sgMail.send({
         to: hostEmail,
-        bcc: 'sarbjeet.rayat@gmail.com',
+        bcc: 'sarbjeetrayat@gmail.com',
         from: 'noreply@premoney.com',
-        subject: `Your event "${name}" has been created!`,
+        subject: `Your event "${name}" has ended`,
         html: `
-    <div style="font-family: Arial, sans-serif; padding: 20px;">
-      <h2 style="color: #007bff;">Event Created Successfully</h2>
-      <p>Your event <strong>${name}</strong> has been created successfully.</p>
-      <p><strong>Event Code:</strong> ${eventId}</p>
-      <p>Use this code to share your event with participants or manage it in the app.</p>
-      <br />
-      <p>— The Pre Team</p>
-    </div>
-  `,
+        <div style="font-family: Arial, sans-serif; padding: 20px;">
+          <h2 style="color: #007bff;">Your Event has ended</h2>
+          <p>Your event <strong>${name}</strong> has now ended and ready for results.</p>
+          <p>— The Pre Team</p>
+        </div>
+      `,
       })
 
       console.log(`📧 Email sent to ${hostEmail}`)

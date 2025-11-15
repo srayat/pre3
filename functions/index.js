@@ -23,11 +23,12 @@ exports.reservePersonByEmail = require('./reservePersonByEmail').reservePersonBy
 exports.linkUserToPerson = require('./onUserCreate').linkUserToPerson
 exports.helloWorld = require('./helloWorld').helloWorld
 exports.logStartupNameChange = require('./logStartupNameChange').logStartupNameChange
-exports.onEventCreated = require('./onEventCreated').onEventCreated
 exports.joiningPremoney = require('./joiningPremoney').joiningPremoney
 exports.onEventEnded = require('./onEventEnded').onEventEnded
 exports.notifyOnUserCreate = require('./notifyOnUserCreate').notifyOnUserCreate
-exports.testNotifications = require('./testNotifications').testNotifications
+exports.notifyOnEventCreate = require('./notifyOnEventCreate').notifyOnEventCreate
+exports.notifyOnEventLive = require('./notifyOnEventLive').notifyOnEventLive
+exports.notifyOnEventEnded = require('./notifyOnEventEnded').notifyOnEventEnded
 
 // ✅ Export v2 callable functions
 exports.getHostEvents = onCall({ cors: true }, getHostEvents)
